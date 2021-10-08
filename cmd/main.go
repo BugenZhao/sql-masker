@@ -2,71 +2,57 @@ package main
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/BugenZhao/sql-masker/tidb"
-	"github.com/pingcap/parser"
-	"github.com/pingcap/parser/ast"
 	_ "github.com/pingcap/tidb/types/parser_driver"
 )
 
-type MyVisitor struct {
-	depth    int
-	colNames []string
-}
-
-func (v *MyVisitor) Log(in ast.Node) {
-	indent := strings.Repeat("  ", v.depth)
-	fmt.Printf("%v%T: %v, %v\n", indent, in, in.Text(), in)
-}
-
-func (v *MyVisitor) Enter(in ast.Node) (ast.Node, bool) {
-	v.depth += 1
-	v.Log(in)
-	if name, ok := in.(*ast.ColumnName); ok {
-		v.colNames = append(v.colNames, name.OrigColName())
-	}
-	return in, false
-}
-
-func (v *MyVisitor) Leave(in ast.Node) (ast.Node, bool) {
-	v.depth -= 1
-	return in, true
-}
-
-func parse(sql string) (*ast.StmtNode, error) {
-	p := parser.New()
-	stmtNodes, _, err := p.Parse(sql, "", "")
-	if err != nil {
-		return nil, err
-	}
-	return &stmtNodes[0], nil
-}
-
-func extract(rootNode *ast.StmtNode) []string {
-	v := MyVisitor{}
-	(*rootNode).Accept(&v)
-	return v.colNames
-}
-
 func main() {
-	err := tidb.Play()
+	err := play()
 	if err != nil {
 		panic(err)
 	}
-	return
+}
 
-	sqls := []string{
-		"select grade g from student S where S.name = 'bugen'",
-		"UPDATE warehouse SET w_ytd = w_ytd + 'some amount' WHERE w_id = 'some id'",
+func play() error {
+	db, err := tidb.NewTiDBInstance()
+	if err != nil {
+		return err
 	}
-	for _, sql := range sqls {
-		fmt.Println(sql)
-		node, err := parse(sql)
+
+	executeSQLs := []string{
+		"use test;",
+		"create table test.t(id int primary key, name varchar(24), birth datetime, deci decimal(6,2));",
+		"insert into test.t values (1, '233', '2021-09-30 12:34:56', 12.34);",
+	}
+
+	for _, sql := range executeSQLs {
+		_, err = db.Execute(sql)
 		if err != nil {
-			fmt.Printf("parse error: %v\n", err.Error())
+			return err
 		}
-		names := extract(node)
-		fmt.Println(names)
 	}
+
+	inferSQLs := []string{
+		// "select * from t where name = 233;", // table reader
+		"select * from t where birth between 2021 and '2022'",
+		// "select * from t where name between 200 and 300;",
+		"select * from t where deci >= 1234",
+		"select * from t where id = '23';", // point get
+		// "select * from t where id = '23' and name = 233;", // selection with child (point get)
+	}
+
+	inferer := tidb.NewInferer(db)
+
+	for _, sql := range inferSQLs {
+		fmt.Println()
+		fmt.Println(sql)
+
+		err := inferer.Infer(sql)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+
+	return nil
 }
