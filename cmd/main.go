@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/BugenZhao/sql-masker/tidb"
-	_ "github.com/pingcap/tidb/types/parser_driver"
 )
 
 func main() {

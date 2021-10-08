@@ -2,7 +2,9 @@ package tidb
 
 import (
 	"fmt"
+	"strings"
 
+	"github.com/pingcap/parser/format"
 	plannercore "github.com/pingcap/tidb/planner/core"
 )
 
@@ -16,12 +18,34 @@ func NewInferer(db *TiDBInstance) *Inferer {
 	}
 }
 
-func (i *Inferer) replace(sql string) string {
-	return sql
+func (i *Inferer) replace(sql string) (string, error) {
+	v := NewReplaceVisitor()
+
+	node, err := i.db.ParseOne(sql)
+	if err != nil {
+		return sql, err
+	}
+	newNode, _ := node.Accept(v)
+
+	buf := &strings.Builder{}
+	restoreCtx := format.NewRestoreCtx(format.DefaultRestoreFlags|format.RestoreStringWithoutDefaultCharset, buf)
+	err = newNode.Restore(restoreCtx)
+	if err != nil {
+		return sql, err
+	}
+
+	newSQL := buf.String()
+	fmt.Println(newSQL)
+
+	return newSQL, nil
 }
 
 func (i *Inferer) Infer(sql string) error {
-	sql = i.replace(sql)
+	sql, err := i.replace(sql)
+
+	if err != nil {
+		return err
+	}
 
 	execStmt, err := i.db.Compile(sql)
 	if err != nil {
