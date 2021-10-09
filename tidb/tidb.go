@@ -63,15 +63,19 @@ func (db *TiDBInstance) Execute(sql string) (server.ResultSet, error) {
 	return db.qctx.ExecuteStmt(db.ctx, stmt)
 }
 
-func (db *TiDBInstance) Compile(sql string) (*executor.ExecStmt, error) {
-	stmt, err := db.ParseOne(sql)
-	if err != nil {
-		return nil, err
-	}
+func (db *TiDBInstance) CompileStmtNode(stmt ast.StmtNode) (*executor.ExecStmt, error) {
 	compiler := executor.Compiler{Ctx: db.qctx.Session}
 	execStmt, err := compiler.Compile(db.ctx, stmt)
 	if err != nil {
 		return nil, err
 	}
 	return execStmt, nil
+}
+
+func (db *TiDBInstance) Compile(sql string) (*executor.ExecStmt, error) {
+	stmt, err := db.ParseOne(sql)
+	if err != nil {
+		return nil, err
+	}
+	return db.CompileStmtNode(stmt)
 }

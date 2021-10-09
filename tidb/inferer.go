@@ -2,10 +2,13 @@ package tidb
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
+	"github.com/pingcap/parser/ast"
 	"github.com/pingcap/parser/format"
 	plannercore "github.com/pingcap/tidb/planner/core"
+	"github.com/pingcap/tidb/types"
 )
 
 type Inferer struct {
@@ -18,40 +21,42 @@ func NewInferer(db *TiDBInstance) *Inferer {
 	}
 }
 
-func (i *Inferer) replace(sql string) (string, error) {
-	v := NewReplaceVisitor()
-
+func (i *Inferer) replace(sql string) (ast.StmtNode, map[int64]types.Datum, error) {
 	node, err := i.db.ParseOne(sql)
 	if err != nil {
-		return sql, err
+		return nil, nil, err
 	}
+	v := NewReplaceVisitor()
 	newNode, _ := node.Accept(v)
 
+	return newNode.(ast.StmtNode), v.OriginDatums, nil
+}
+
+func (i *Inferer) restore(stmtNode ast.StmtNode, originDatums map[int64]types.Datum, targetTypes map[int64]types.EvalType) (string, error) {
+	v := NewRestoreVisitor(originDatums, targetTypes)
+	newNode, _ := stmtNode.Accept(v)
+
 	buf := &strings.Builder{}
-	restoreCtx := format.NewRestoreCtx(format.DefaultRestoreFlags|format.RestoreStringWithoutDefaultCharset, buf)
-	err = newNode.Restore(restoreCtx)
+	restoreFlags := format.DefaultRestoreFlags | format.RestoreStringWithoutDefaultCharset
+	restoreCtx := format.NewRestoreCtx(restoreFlags, buf)
+	err := newNode.Restore(restoreCtx)
 	if err != nil {
-		return sql, err
+		return "", err
 	}
 
 	newSQL := buf.String()
-	fmt.Println(newSQL)
-
 	return newSQL, nil
 }
 
 func (i *Inferer) Infer(sql string) error {
-	sql, err := i.replace(sql)
-
+	stmtNode, originDatums, err := i.replace(sql)
 	if err != nil {
 		return err
 	}
-
-	execStmt, err := i.db.Compile(sql)
+	execStmt, err := i.db.CompileStmtNode(stmtNode)
 	if err != nil {
 		return err
 	}
-
 	plan, ok := execStmt.Plan.(plannercore.PhysicalPlan)
 	if !ok {
 		return fmt.Errorf("not a physical plan for sql `%s`", sql)
@@ -60,10 +65,29 @@ func (i *Inferer) Infer(sql string) error {
 	v := NewPlanVisitor()
 	v.Visit(plan)
 
+	targetTypes := make(map[int64]types.EvalType)
 	for _, c := range v.Constants {
-		t := v.Graph.InferType(c)
-		fmt.Printf("`%s` is %s\n", c.Value.String(), EvalTypeToString(t))
+		tp := v.Graph.InferType(c)
+
+		s, err := c.Value.ToString()
+		if err != nil {
+			continue
+		}
+		f, err := strconv.ParseFloat(s, 64)
+		if err != nil {
+			continue
+		}
+		targetTypes[int64(f)] = tp
+
+		originDatum := originDatums[int64(f)]
+		fmt.Printf("`%s` is %s\n", originDatum.String(), EvalTypeToString(tp))
 	}
+
+	newSQL, err := i.restore(stmtNode, originDatums, targetTypes)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%s\n", newSQL)
 
 	return nil
 }
