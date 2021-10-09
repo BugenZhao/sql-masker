@@ -3,6 +3,7 @@ module github.com/BugenZhao/sql-masker
 go 1.17
 
 require (
+	github.com/jpillora/opts v1.2.0
 	github.com/pingcap/log v0.0.0-20210906054005-afc726e70354
 	github.com/pingcap/parser v0.0.0-20210917114242-ac711116bdff
 	github.com/pingcap/tidb v1.1.0-beta.0.20210929083847-091ae3bde0a5
@@ -54,6 +55,8 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.1.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.12.1 // indirect
+	github.com/hashicorp/errwrap v1.0.0 // indirect
+	github.com/hashicorp/go-multierror v1.0.0 // indirect
 	github.com/iancoleman/strcase v0.0.0-20191112232945-16388991a334 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
@@ -87,6 +90,7 @@ require (
 	github.com/pingcap/tipb v0.0.0-20210802080519-94b831c6db55 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/posener/complete v1.2.2-0.20190308074557-af07aa5181b3 // indirect
 	github.com/prometheus/client_golang v1.5.1 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.9.1 // indirect

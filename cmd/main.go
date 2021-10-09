@@ -8,23 +8,33 @@ import (
 
 	"github.com/BugenZhao/sql-masker/mask"
 	"github.com/BugenZhao/sql-masker/tidb"
+	"github.com/jpillora/opts"
 )
 
+type Opt struct {
+	Dir string `opts:"help=directory to SQLs"`
+}
+
 func main() {
-	err := play()
+	opt := &Opt{
+		Dir: "example/min",
+	}
+	opts.Parse(opt)
+
+	err := play(opt)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func play() error {
+func play(opt *Opt) error {
 	db, err := tidb.NewInstance()
 	if err != nil {
 		return err
 	}
 
 	executeSQLs := make(chan string)
-	go readSQLs("example/execute.sql", executeSQLs)
+	go readSQLs(opt.Dir+"/execute.sql", executeSQLs)
 	for sql := range executeSQLs {
 		err = db.Execute(sql)
 		if err != nil {
@@ -34,7 +44,7 @@ func play() error {
 
 	masker := mask.NewWorker(db, mask.DebugMask)
 	maskSQLs := make(chan string)
-	go readSQLs("example/mask.sql", maskSQLs)
+	go readSQLs(opt.Dir+"/mask.sql", maskSQLs)
 	for sql := range maskSQLs {
 		fmt.Println()
 		fmt.Println(sql)
@@ -54,7 +64,7 @@ func readSQLs(path string, sqlOut chan<- string) {
 	defer close(sqlOut)
 	file, err := os.Open(path)
 	if err != nil {
-		return
+		panic(err)
 	}
 	defer file.Close()
 
