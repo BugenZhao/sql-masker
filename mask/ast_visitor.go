@@ -94,8 +94,8 @@ func (v *RestoreVisitor) Leave(in ast.Node) (_ ast.Node, ok bool) {
 		originExpr := v.originExprs[i]
 		inferredType, ok := v.inferredTypes[i]
 		if !ok {
-			v.err = fmt.Errorf("type for `%v` not inferred", expr.Datum)
-			return originExpr, false
+			v.err = fmt.Errorf("type for `%v` not inferred", originExpr.Datum)
+			return originExpr, true
 		}
 		castedDatum, err := originExpr.Datum.ConvertTo(v.stmtContext, inferredType)
 		if err != nil {

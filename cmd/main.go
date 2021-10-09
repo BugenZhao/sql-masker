@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/BugenZhao/sql-masker/mask"
 	"github.com/BugenZhao/sql-masker/tidb"
@@ -46,17 +47,27 @@ func play(opt *Opt) error {
 	maskSQLs := make(chan string)
 	go readSQLs(opt.Dir+"/mask.sql", maskSQLs)
 	for sql := range maskSQLs {
-		fmt.Println()
-		fmt.Println(sql)
+		fmt.Printf("\n-> %s\n", sql)
 		newSQL, err := masker.MaskOne(sql)
 		if err != nil {
-			fmt.Printf("FAILED: %v\n", err)
-		} else {
-			fmt.Println(newSQL)
+			if newSQL == "" || newSQL == sql {
+				fmt.Printf("!> %v\n", err)
+				continue
+			} else {
+				fmt.Printf("?> %v\n", err)
+			}
 		}
+		fmt.Printf("=> %s\n", newSQL)
 	}
 
-	fmt.Printf("\n\n===Summary===\nSuccess %d/%d\n", masker.Success, masker.All)
+	fmt.Printf(`
+
+====Summary====
+Success      %d
+Problematic  %d
+Total        %d
+`,
+		masker.Success, masker.Problematic, masker.All)
 	return nil
 }
 
@@ -76,6 +87,6 @@ func readSQLs(path string, sqlOut chan<- string) {
 		} else if err != nil {
 			return
 		}
-		sqlOut <- sql
+		sqlOut <- strings.TrimSpace(sql)
 	}
 }

@@ -49,7 +49,11 @@ func NewInstance() (*Instance, error) {
 }
 
 func (db *Instance) Parse(sql string) ([]ast.StmtNode, error) {
-	return db.qctx.Parse(db.ctx, sql)
+	stmts, err := db.qctx.Parse(db.ctx, sql)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing sql `%s`: %w", sql, err)
+	}
+	return stmts, nil
 }
 
 func (db *Instance) ParseOne(sql string) (ast.StmtNode, error) {

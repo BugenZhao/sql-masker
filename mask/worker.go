@@ -12,18 +12,17 @@ import (
 )
 
 type Worker struct {
-	db       *tidb.Instance
-	maskFunc MaskFunc
-	All      uint64
-	Success  uint64
+	db          *tidb.Instance
+	maskFunc    MaskFunc
+	All         uint64
+	Problematic uint64
+	Success     uint64
 }
 
 func NewWorker(db *tidb.Instance, maskFunc MaskFunc) *Worker {
 	return &Worker{
 		db:       db,
 		maskFunc: maskFunc,
-		All:      0,
-		Success:  0,
 	}
 }
 
@@ -54,7 +53,7 @@ func (w *Worker) restore(stmtNode ast.StmtNode, originExprs ExprMap, inferredTyp
 	}
 
 	newSQL := buf.String()
-	return newSQL, nil
+	return newSQL, v.err
 }
 
 func (w *Worker) infer(stmtNode ast.StmtNode) (TypeMap, error) {
@@ -64,7 +63,7 @@ func (w *Worker) infer(stmtNode ast.StmtNode) (TypeMap, error) {
 	}
 	plan, ok := execStmt.Plan.(plannercore.PhysicalPlan)
 	if !ok {
-		return nil, fmt.Errorf("not a physical plan")
+		return nil, fmt.Errorf("not a physical plan, a non-`select` statement?")
 	}
 
 	b := NewCastGraphBuilder()
@@ -103,7 +102,12 @@ func (w *Worker) MaskOne(sql string) (string, error) {
 
 	newSQL, err := w.restore(replacedStmtNode, originExprs, inferredTypes)
 	if err != nil {
-		return sql, err
+		if newSQL == "" {
+			return sql, err
+		} else {
+			w.Problematic += 1
+			return newSQL, err
+		}
 	}
 
 	w.Success += 1
