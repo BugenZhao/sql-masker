@@ -3,8 +3,10 @@ module github.com/BugenZhao/sql-masker
 go 1.17
 
 require (
+	github.com/pingcap/log v0.0.0-20210906054005-afc726e70354
 	github.com/pingcap/parser v0.0.0-20210917114242-ac711116bdff
 	github.com/pingcap/tidb v1.1.0-beta.0.20210929083847-091ae3bde0a5
+	go.uber.org/zap v1.19.1
 )
 
 require (
@@ -80,7 +82,6 @@ require (
 	github.com/pingcap/fn v0.0.0-20200306044125-d5540d389059 // indirect
 	github.com/pingcap/goleveldb v0.0.0-20191226122134-f82aafb29989 // indirect
 	github.com/pingcap/kvproto v0.0.0-20210806074406-317f69fb54b4 // indirect
-	github.com/pingcap/log v0.0.0-20210906054005-afc726e70354 // indirect
 	github.com/pingcap/sysutil v0.0.0-20210730114356-fcd8a63f68c5 // indirect
 	github.com/pingcap/tidb-tools v5.0.3+incompatible // indirect
 	github.com/pingcap/tipb v0.0.0-20210802080519-94b831c6db55 // indirect
@@ -119,7 +120,6 @@ require (
 	go.opencensus.io v0.23.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
-	go.uber.org/zap v1.19.1 // indirect
 	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a // indirect
 	golang.org/x/net v0.0.0-20210503060351-7fd8e65b6420 // indirect
 	golang.org/x/oauth2 v0.0.0-20210805134026-6f1e6394065a // indirect

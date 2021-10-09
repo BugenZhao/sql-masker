@@ -72,6 +72,7 @@ func NewRestoreVisitor(originExprs ExprMap, inferredTypes TypeMap, maskFunc Mask
 		inferredTypes,
 		&sc,
 		maskFunc,
+		nil,
 	}
 }
 
@@ -80,28 +81,32 @@ type RestoreVisitor struct {
 	inferredTypes TypeMap
 	stmtContext   *stmtctx.StatementContext
 	maskFunc      MaskFunc
+	err           error
 }
 
-func (v *RestoreVisitor) Enter(in ast.Node) (node ast.Node, skipChilren bool) {
+func (v *RestoreVisitor) Enter(in ast.Node) (_ ast.Node, skipChilren bool) {
 	return in, false
 }
 
-func (v *RestoreVisitor) Leave(in ast.Node) (node ast.Node, ok bool) {
+func (v *RestoreVisitor) Leave(in ast.Node) (_ ast.Node, ok bool) {
 	if expr, ok := in.(*driver.ValueExpr); ok {
 		i := expr.Datum.GetInt64()
 		originExpr := v.originExprs[i]
 		inferredType, ok := v.inferredTypes[i]
 		if !ok {
-			return originExpr, true
+			v.err = fmt.Errorf("type for `%v` not inferred", expr.Datum)
+			return originExpr, false
 		}
 		castedDatum, err := originExpr.Datum.ConvertTo(v.stmtContext, inferredType)
 		if err != nil {
-			return originExpr, true
+			v.err = fmt.Errorf("cannot cast `%v` to type `%v`; %w", expr.Datum, inferredType, err)
+			return originExpr, false
 		}
 
 		maskedDatum, maskedType, err := v.maskFunc(castedDatum, inferredType)
 		if err != nil {
-			return originExpr, true
+			v.err = fmt.Errorf("failed to mask `%v`; %w", castedDatum, err)
+			return originExpr, false
 		}
 		if maskedType == nil {
 			maskedType = inferredType

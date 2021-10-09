@@ -24,9 +24,8 @@ CURDIR := $(shell pwd)
 PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
 export PATH := $(CURDIR)/bin/:$(PATH)
 
-# run starts the server with dev config
 
-cli: lint
+cli:
 	$(GOBUILD) -o bin/sql-masker ./cmd
 
 test:

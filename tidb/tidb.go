@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/pingcap/log"
 	"github.com/pingcap/parser/ast"
-	tmysql "github.com/pingcap/parser/mysql"
+	"github.com/pingcap/parser/mysql"
 	"github.com/pingcap/tidb/executor"
 	"github.com/pingcap/tidb/server"
 	"github.com/pingcap/tidb/session"
 	"github.com/pingcap/tidb/store/mockstore"
+	"go.uber.org/zap/zapcore"
 )
 
 const (
@@ -23,6 +25,8 @@ type Instance struct {
 }
 
 func NewInstance() (*Instance, error) {
+	log.SetLevel(zapcore.ErrorLevel)
+
 	storage, err := mockstore.NewMockStore()
 	if err != nil {
 		return nil, err
@@ -31,7 +35,7 @@ func NewInstance() (*Instance, error) {
 	session.BootstrapSession(storage)
 	driver := server.NewTiDBDriver(storage)
 
-	qctx, err := driver.OpenCtx(uint64(0), 0, uint8(tmysql.DefaultCollationID), "", nil)
+	qctx, err := driver.OpenCtx(uint64(0), 0, uint8(mysql.DefaultCollationID), "", nil)
 	if err != nil {
 		return nil, err
 	}

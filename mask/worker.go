@@ -14,12 +14,16 @@ import (
 type Worker struct {
 	db       *tidb.Instance
 	maskFunc MaskFunc
+	All      uint64
+	Success  uint64
 }
 
 func NewWorker(db *tidb.Instance, maskFunc MaskFunc) *Worker {
 	return &Worker{
-		db,
-		maskFunc,
+		db:       db,
+		maskFunc: maskFunc,
+		All:      0,
+		Success:  0,
 	}
 }
 
@@ -36,7 +40,10 @@ func (w *Worker) replace(sql string) (ast.StmtNode, ExprMap, error) {
 
 func (w *Worker) restore(stmtNode ast.StmtNode, originExprs ExprMap, inferredTypes TypeMap) (string, error) {
 	v := NewRestoreVisitor(originExprs, inferredTypes, w.maskFunc)
-	newNode, _ := stmtNode.Accept(v)
+	newNode, ok := stmtNode.Accept(v)
+	if !ok {
+		return "", v.err
+	}
 
 	buf := &strings.Builder{}
 	restoreFlags := format.DefaultRestoreFlags | format.RestoreStringWithoutDefaultCharset
@@ -81,7 +88,9 @@ func (w *Worker) infer(stmtNode ast.StmtNode) (TypeMap, error) {
 	return inferredTypes, nil
 }
 
-func (w *Worker) Mask(sql string) (string, error) {
+func (w *Worker) MaskOne(sql string) (string, error) {
+	w.All += 1
+
 	replacedStmtNode, originExprs, err := w.replace(sql)
 	if err != nil {
 		return sql, err
@@ -97,5 +106,6 @@ func (w *Worker) Mask(sql string) (string, error) {
 		return sql, err
 	}
 
+	w.Success += 1
 	return newSQL, nil
 }

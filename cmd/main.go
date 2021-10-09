@@ -36,16 +36,17 @@ func play() error {
 	maskSQLs := make(chan string)
 	go readSQLs("example/mask.sql", maskSQLs)
 	for sql := range maskSQLs {
-		newSQL, err := masker.Mask(sql)
+		fmt.Println()
+		fmt.Println(sql)
+		newSQL, err := masker.MaskOne(sql)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Printf("FAILED: %v\n", err)
 		} else {
-			fmt.Println()
-			fmt.Println(sql)
 			fmt.Println(newSQL)
 		}
 	}
 
+	fmt.Printf("\n\n===Summary===\nSuccess %d/%d\n", masker.Success, masker.All)
 	return nil
 }
 

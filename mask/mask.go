@@ -10,6 +10,7 @@ type MaskFunc = func(datum types.Datum, tp *types.FieldType) (types.Datum, *type
 var (
 	_ MaskFunc = IdenticalMask
 	_ MaskFunc = DebugMask
+	_ MaskFunc = WorkloadSimMask
 )
 
 func IdenticalMask(datum types.Datum, tp *types.FieldType) (types.Datum, *types.FieldType, error) {
@@ -17,5 +18,9 @@ func IdenticalMask(datum types.Datum, tp *types.FieldType) (types.Datum, *types.
 }
 
 func DebugMask(datum types.Datum, tp *types.FieldType) (types.Datum, *types.FieldType, error) {
+	return types.NewDatum(datum.String()), types.NewFieldType(mysql.TypeString), nil
+}
+
+func WorkloadSimMask(datum types.Datum, tp *types.FieldType) (types.Datum, *types.FieldType, error) {
 	return types.NewDatum(datum.String()), types.NewFieldType(mysql.TypeString), nil
 }
