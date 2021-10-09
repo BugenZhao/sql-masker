@@ -23,8 +23,8 @@ var _ Node = NormalNode{}
 
 type CastNode struct {
 	Node
-	left  types.EvalType
-	right types.EvalType
+	left  *types.FieldType
+	right *types.FieldType
 }
 
 type NormalNode struct {
@@ -43,14 +43,13 @@ func (g *CastGraph) Add(a Expr, b Expr) bool {
 		switch e := e.(type) {
 		case *expression.ScalarFunction:
 			if e.FuncName.L == "cast" {
-				t1 := e.GetArgs()[0].GetType().EvalType()
-				t2 := e.GetType().EvalType()
+				t1 := e.GetArgs()[0].GetType()
+				t2 := e.GetType()
 				return CastNode{
 					left: t1, right: t2,
 				}
 			}
 		}
-
 		return NormalNode{expr: e}
 	}
 
@@ -63,35 +62,39 @@ func (g *CastGraph) add(a Node, b Node) {
 	g.Adj[b] = append(g.Adj[b], a)
 }
 
-func (g *CastGraph) doInfer(u Node, currentT types.EvalType, visited map[Node]bool) []types.EvalType {
+func (g *CastGraph) doInfer(u Node, currType *types.FieldType, visited map[Node]bool) []*types.FieldType {
 	visited[u] = true
 	defer func() { visited[u] = false }()
 
-	possibleTypes := []types.EvalType{}
+	possibleTypes := []*types.FieldType{}
 	for _, v := range g.Adj[u] {
 		if visited[v] {
 			continue
 		}
 		switch v := v.(type) {
 		case CastNode:
-			if currentT == v.left {
+			if currType.EvalType() == v.left.EvalType() {
 				possibleTypes = append(possibleTypes, g.doInfer(v, v.right, visited)...)
-			} else if currentT == v.right {
+			} else if currType.EvalType() == v.right.EvalType() {
 				possibleTypes = append(possibleTypes, g.doInfer(v, v.left, visited)...)
+			}
+		case NormalNode:
+			if currType.EvalType() == v.expr.GetType().EvalType() {
+				possibleTypes = append(possibleTypes, v.expr.GetType())
 			}
 		default:
 		}
 	}
 
 	if len(possibleTypes) == 0 {
-		possibleTypes = append(possibleTypes, currentT)
+		possibleTypes = append(possibleTypes, currType)
 	}
 	return possibleTypes
 }
 
-func (g *CastGraph) InferType(c *expression.Constant) types.EvalType {
+func (g *CastGraph) InferType(c *expression.Constant) *types.FieldType {
 	u := NormalNode{expr: c}
-	t := c.GetType().EvalType()
+	t := c.GetType()
 	visited := make(map[Node]bool)
 
 	possibleTypes := g.doInfer(u, t, visited)

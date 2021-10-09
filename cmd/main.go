@@ -21,7 +21,7 @@ func play() error {
 
 	executeSQLs := []string{
 		"use test;",
-		"create table test.t(id int, name varchar(24), birth datetime, deci decimal(6,2));",
+		"create table test.t(id int, name varchar(42), birth datetime, deci decimal(6,2));",
 		"insert into test.t values (1, '233', '2021-09-30 12:34:56', 12.34);",
 	}
 

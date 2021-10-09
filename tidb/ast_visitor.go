@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/BugenZhao/sql-masker/mask"
 	"github.com/pingcap/parser/ast"
+	"github.com/pingcap/tidb/sessionctx/stmtctx"
 	"github.com/pingcap/tidb/types"
 	driver "github.com/pingcap/tidb/types/parser_driver"
 )
@@ -33,16 +35,19 @@ func (v *DebugVisitor) Leave(in ast.Node) (node ast.Node, ok bool) {
 	return in, true
 }
 
+type ExprMap = map[int64]*driver.ValueExpr
+type TypeMap = map[int64]*types.FieldType
+
 func NewReplaceVisitor() *ReplaceVisitor {
 	return &ReplaceVisitor{
-		next:         1001,
-		OriginDatums: make(map[int64]types.Datum),
+		next:        1001,
+		OriginExprs: make(ExprMap),
 	}
 }
 
 type ReplaceVisitor struct {
-	next         int64
-	OriginDatums map[int64]types.Datum
+	next        int64
+	OriginExprs ExprMap
 }
 
 func (v *ReplaceVisitor) Enter(in ast.Node) (node ast.Node, skipChilren bool) {
@@ -52,23 +57,30 @@ func (v *ReplaceVisitor) Enter(in ast.Node) (node ast.Node, skipChilren bool) {
 func (v *ReplaceVisitor) Leave(in ast.Node) (node ast.Node, ok bool) {
 	if expr, ok := in.(*driver.ValueExpr); ok {
 		replacedExpr := ast.NewValueExpr(v.next, "", "")
-		v.OriginDatums[v.next] = expr.Datum
+		v.OriginExprs[v.next] = expr
 		v.next += 1
 		return replacedExpr, true
 	}
 	return in, true
 }
 
-func NewRestoreVisitor(originDatums map[int64]types.Datum, targetTypes map[int64]types.EvalType) *RestoreVisitor {
+func NewRestoreVisitor(originExprs ExprMap, targetTypes TypeMap, maskFunc mask.MaskFunc) *RestoreVisitor {
+	sc := stmtctx.StatementContext{}
+	sc.IgnoreTruncate = true // todo: what's this ?
+
 	return &RestoreVisitor{
-		originDatums,
+		originExprs,
 		targetTypes,
+		&sc,
+		maskFunc,
 	}
 }
 
 type RestoreVisitor struct {
-	originDatums map[int64]types.Datum
-	targetTypes  map[int64]types.EvalType
+	originExprs ExprMap
+	targetTypes TypeMap
+	stmtContext *stmtctx.StatementContext
+	maskFunc    mask.MaskFunc
 }
 
 func (v *RestoreVisitor) Enter(in ast.Node) (node ast.Node, skipChilren bool) {
@@ -78,11 +90,23 @@ func (v *RestoreVisitor) Enter(in ast.Node) (node ast.Node, skipChilren bool) {
 func (v *RestoreVisitor) Leave(in ast.Node) (node ast.Node, ok bool) {
 	if expr, ok := in.(*driver.ValueExpr); ok {
 		i := expr.Datum.GetInt64()
+		originExpr := v.originExprs[i]
 		targetType, ok := v.targetTypes[i]
 		if !ok {
-			return in, true
+			return originExpr, true
 		}
-		restoredExpr := ast.NewValueExpr(EvalTypeToString(targetType), "", "")
+		castedDatum, err := originExpr.Datum.ConvertTo(v.stmtContext, targetType)
+		if err != nil {
+			return originExpr, true
+		}
+
+		maskedDatum, err := v.maskFunc(castedDatum, targetType)
+		if err != nil {
+			return originExpr, true
+		}
+
+		restoredExpr := ast.NewValueExpr(maskedDatum.GetValue(), "", "")
+		restoredExpr.SetType(targetType)
 		return restoredExpr, true
 	}
 	return in, true

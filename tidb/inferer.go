@@ -5,10 +5,10 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/BugenZhao/sql-masker/mask"
 	"github.com/pingcap/parser/ast"
 	"github.com/pingcap/parser/format"
 	plannercore "github.com/pingcap/tidb/planner/core"
-	"github.com/pingcap/tidb/types"
 )
 
 type Inferer struct {
@@ -21,7 +21,7 @@ func NewInferer(db *TiDBInstance) *Inferer {
 	}
 }
 
-func (i *Inferer) replace(sql string) (ast.StmtNode, map[int64]types.Datum, error) {
+func (i *Inferer) replace(sql string) (ast.StmtNode, ExprMap, error) {
 	node, err := i.db.ParseOne(sql)
 	if err != nil {
 		return nil, nil, err
@@ -29,11 +29,11 @@ func (i *Inferer) replace(sql string) (ast.StmtNode, map[int64]types.Datum, erro
 	v := NewReplaceVisitor()
 	newNode, _ := node.Accept(v)
 
-	return newNode.(ast.StmtNode), v.OriginDatums, nil
+	return newNode.(ast.StmtNode), v.OriginExprs, nil
 }
 
-func (i *Inferer) restore(stmtNode ast.StmtNode, originDatums map[int64]types.Datum, targetTypes map[int64]types.EvalType) (string, error) {
-	v := NewRestoreVisitor(originDatums, targetTypes)
+func (i *Inferer) restore(stmtNode ast.StmtNode, originExprs ExprMap, targetTypes TypeMap) (string, error) {
+	v := NewRestoreVisitor(originExprs, targetTypes, mask.IdenticalMask)
 	newNode, _ := stmtNode.Accept(v)
 
 	buf := &strings.Builder{}
@@ -49,7 +49,7 @@ func (i *Inferer) restore(stmtNode ast.StmtNode, originDatums map[int64]types.Da
 }
 
 func (i *Inferer) Infer(sql string) error {
-	stmtNode, originDatums, err := i.replace(sql)
+	stmtNode, originExprs, err := i.replace(sql)
 	if err != nil {
 		return err
 	}
@@ -65,7 +65,7 @@ func (i *Inferer) Infer(sql string) error {
 	v := NewPlanVisitor()
 	v.Visit(plan)
 
-	targetTypes := make(map[int64]types.EvalType)
+	targetTypes := make(TypeMap)
 	for _, c := range v.Constants {
 		tp := v.Graph.InferType(c)
 
@@ -79,11 +79,11 @@ func (i *Inferer) Infer(sql string) error {
 		}
 		targetTypes[int64(f)] = tp
 
-		originDatum := originDatums[int64(f)]
-		fmt.Printf("`%s` is %s\n", originDatum.String(), EvalTypeToString(tp))
+		originDatum := originExprs[int64(f)].Datum
+		fmt.Printf("`%s` is %s\n", originDatum.String(), tp.String())
 	}
 
-	newSQL, err := i.restore(stmtNode, originDatums, targetTypes)
+	newSQL, err := i.restore(stmtNode, originExprs, targetTypes)
 	if err != nil {
 		return err
 	}
