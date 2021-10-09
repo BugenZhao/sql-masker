@@ -1,6 +1,10 @@
 package mask
 
 import (
+	"fmt"
+	"strings"
+
+	"github.com/fatih/color"
 	"github.com/pingcap/parser/mysql"
 	"github.com/pingcap/tidb/types"
 )
@@ -18,9 +22,15 @@ func IdenticalMask(datum types.Datum, tp *types.FieldType) (types.Datum, *types.
 }
 
 func DebugMask(datum types.Datum, tp *types.FieldType) (types.Datum, *types.FieldType, error) {
-	return types.NewDatum(datum.String()), types.NewFieldType(mysql.TypeString), nil
+	tpDesc := strings.Split(tp.String(), " ")[0]
+	datumDesc, err := datum.ToString()
+	if err != nil {
+		datumDesc = datum.String()
+	}
+	info := fmt.Sprintf("%s %s", color.YellowString(tpDesc), color.CyanString(datumDesc))
+	return types.NewDatum(info), types.NewFieldType(mysql.TypeString), nil
 }
 
 func WorkloadSimMask(datum types.Datum, tp *types.FieldType) (types.Datum, *types.FieldType, error) {
-	return types.NewDatum(datum.String()), types.NewFieldType(mysql.TypeString), nil
+	panic("unimplemented")
 }

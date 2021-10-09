@@ -3,6 +3,7 @@ module github.com/BugenZhao/sql-masker
 go 1.17
 
 require (
+	github.com/fatih/color v1.13.0
 	github.com/jpillora/opts v1.2.0
 	github.com/pingcap/log v0.0.0-20210906054005-afc726e70354
 	github.com/pingcap/parser v0.0.0-20210917114242-ac711116bdff
@@ -38,7 +39,6 @@ require (
 	github.com/dgryski/go-farm v0.0.0-20190423205320-6a90982ecee2 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
-	github.com/fatih/color v1.10.0 // indirect
 	github.com/go-ole/go-ole v1.2.4 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
@@ -65,8 +65,8 @@ require (
 	github.com/juju/ratelimit v1.0.1 // indirect
 	github.com/klauspost/compress v1.11.7 // indirect
 	github.com/klauspost/cpuid v1.2.1 // indirect
-	github.com/mattn/go-colorable v0.1.8 // indirect
-	github.com/mattn/go-isatty v0.0.12 // indirect
+	github.com/mattn/go-colorable v0.1.9 // indirect
+	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mattn/go-runewidth v0.0.12 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
