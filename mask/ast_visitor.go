@@ -1,10 +1,9 @@
-package tidb
+package mask
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/BugenZhao/sql-masker/mask"
 	"github.com/pingcap/parser/ast"
 	"github.com/pingcap/tidb/sessionctx/stmtctx"
 	"github.com/pingcap/tidb/types"
@@ -64,23 +63,23 @@ func (v *ReplaceVisitor) Leave(in ast.Node) (node ast.Node, ok bool) {
 	return in, true
 }
 
-func NewRestoreVisitor(originExprs ExprMap, targetTypes TypeMap, maskFunc mask.MaskFunc) *RestoreVisitor {
+func NewRestoreVisitor(originExprs ExprMap, inferredTypes TypeMap, maskFunc MaskFunc) *RestoreVisitor {
 	sc := stmtctx.StatementContext{}
 	sc.IgnoreTruncate = true // todo: what's this ?
 
 	return &RestoreVisitor{
 		originExprs,
-		targetTypes,
+		inferredTypes,
 		&sc,
 		maskFunc,
 	}
 }
 
 type RestoreVisitor struct {
-	originExprs ExprMap
-	targetTypes TypeMap
-	stmtContext *stmtctx.StatementContext
-	maskFunc    mask.MaskFunc
+	originExprs   ExprMap
+	inferredTypes TypeMap
+	stmtContext   *stmtctx.StatementContext
+	maskFunc      MaskFunc
 }
 
 func (v *RestoreVisitor) Enter(in ast.Node) (node ast.Node, skipChilren bool) {
@@ -91,22 +90,25 @@ func (v *RestoreVisitor) Leave(in ast.Node) (node ast.Node, ok bool) {
 	if expr, ok := in.(*driver.ValueExpr); ok {
 		i := expr.Datum.GetInt64()
 		originExpr := v.originExprs[i]
-		targetType, ok := v.targetTypes[i]
+		inferredType, ok := v.inferredTypes[i]
 		if !ok {
 			return originExpr, true
 		}
-		castedDatum, err := originExpr.Datum.ConvertTo(v.stmtContext, targetType)
+		castedDatum, err := originExpr.Datum.ConvertTo(v.stmtContext, inferredType)
 		if err != nil {
 			return originExpr, true
 		}
 
-		maskedDatum, err := v.maskFunc(castedDatum, targetType)
+		maskedDatum, maskedType, err := v.maskFunc(castedDatum, inferredType)
 		if err != nil {
 			return originExpr, true
+		}
+		if maskedType == nil {
+			maskedType = inferredType
 		}
 
 		restoredExpr := ast.NewValueExpr(maskedDatum.GetValue(), "", "")
-		restoredExpr.SetType(targetType)
+		restoredExpr.SetType(maskedType)
 		return restoredExpr, true
 	}
 	return in, true

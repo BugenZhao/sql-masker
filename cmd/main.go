@@ -1,8 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"io"
+	"os"
 
+	"github.com/BugenZhao/sql-masker/mask"
 	"github.com/BugenZhao/sql-masker/tidb"
 )
 
@@ -14,46 +18,53 @@ func main() {
 }
 
 func play() error {
-	db, err := tidb.NewTiDBInstance()
+	db, err := tidb.NewInstance()
 	if err != nil {
 		return err
 	}
 
-	executeSQLs := []string{
-		"use test;",
-		"create table test.t(id int, name varchar(42), birth datetime, deci decimal(6,2));",
-		"insert into test.t values (1, '233', '2021-09-30 12:34:56', 12.34);",
-	}
-
-	for _, sql := range executeSQLs {
-		_, err = db.Execute(sql)
+	executeSQLs := make(chan string)
+	go readSQLs("example/execute.sql", executeSQLs)
+	for sql := range executeSQLs {
+		err = db.Execute(sql)
 		if err != nil {
 			return err
 		}
 	}
 
-	inferSQLs := []string{
-		// "select * from t where name = 233;", // table reader
-		"select * from t where birth between 2021 and '2022'",
-		"select * from t where birth <= 2010 and birth >= 2000",
-		"select * from t where name = 233 and birth = 233 and id = 233",
-		// "select * from t where name between 200 and 300;",
-		"select * from t where deci >= 1.234e2",
-		"select * from t where id = '23';", // point get
-		// "select * from t where id = '23' and name = 233;", // selection with child (point get)
-	}
-
-	inferer := tidb.NewInferer(db)
-
-	for _, sql := range inferSQLs {
-		fmt.Println()
-		fmt.Println(sql)
-
-		err := inferer.Infer(sql)
+	masker := mask.NewWorker(db, mask.DebugMask)
+	maskSQLs := make(chan string)
+	go readSQLs("example/mask.sql", maskSQLs)
+	for sql := range maskSQLs {
+		newSQL, err := masker.Mask(sql)
 		if err != nil {
 			fmt.Println(err)
+		} else {
+			fmt.Println()
+			fmt.Println(sql)
+			fmt.Println(newSQL)
 		}
 	}
 
 	return nil
+}
+
+func readSQLs(path string, sqlOut chan<- string) {
+	defer close(sqlOut)
+	file, err := os.Open(path)
+	if err != nil {
+		return
+	}
+	defer file.Close()
+
+	reader := bufio.NewReader(file)
+	for {
+		sql, err := reader.ReadString(';')
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			return
+		}
+		sqlOut <- sql
+	}
 }

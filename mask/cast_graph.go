@@ -1,4 +1,4 @@
-package tidb
+package mask
 
 import (
 	"fmt"
@@ -101,19 +101,19 @@ func (g *CastGraph) InferType(c *expression.Constant) *types.FieldType {
 	return possibleTypes[0]
 }
 
-type PlanVisitor struct {
+type CastGraphBuilder struct {
 	Constants []*expression.Constant
 	Handles   []kv.Handle
 	Graph     *CastGraph
 }
 
-func NewPlanVisitor() *PlanVisitor {
-	return &PlanVisitor{
+func NewCastGraphBuilder() *CastGraphBuilder {
+	return &CastGraphBuilder{
 		Graph: NewGraph(),
 	}
 }
 
-func (v *PlanVisitor) Visit(plan plannercore.PhysicalPlan) {
+func (v *CastGraphBuilder) Visit(plan plannercore.PhysicalPlan) {
 	for _, child := range plan.Children() {
 		v.Visit(child)
 	}
@@ -134,7 +134,7 @@ func (v *PlanVisitor) Visit(plan plannercore.PhysicalPlan) {
 	}
 }
 
-func (v *PlanVisitor) visitExpr(expr Expr) {
+func (v *CastGraphBuilder) visitExpr(expr Expr) {
 	switch e := expr.(type) {
 	case *expression.ScalarFunction:
 		args := e.GetArgs()
@@ -154,7 +154,7 @@ func (v *PlanVisitor) visitExpr(expr Expr) {
 	}
 }
 
-func (v *PlanVisitor) Print() {
+func (v *CastGraphBuilder) Print() {
 	for _, c := range v.Constants {
 		fmt.Printf("%T(%v) ", c, c)
 	}

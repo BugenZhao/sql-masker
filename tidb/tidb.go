@@ -17,12 +17,12 @@ const (
 	DefaultConnOpts = "charset=utf8mb4"
 )
 
-type TiDBInstance struct {
+type Instance struct {
 	ctx  context.Context
 	qctx *server.TiDBContext
 }
 
-func NewTiDBInstance() (*TiDBInstance, error) {
+func NewInstance() (*Instance, error) {
 	storage, err := mockstore.NewMockStore()
 	if err != nil {
 		return nil, err
@@ -37,25 +37,29 @@ func NewTiDBInstance() (*TiDBInstance, error) {
 	}
 
 	ctx := context.Background()
-	db := &TiDBInstance{
+	db := &Instance{
 		ctx,
 		qctx,
 	}
 	return db, nil
 }
 
-func (db *TiDBInstance) ParseOne(sql string) (ast.StmtNode, error) {
-	stmts, err := db.qctx.Parse(db.ctx, sql)
+func (db *Instance) Parse(sql string) ([]ast.StmtNode, error) {
+	return db.qctx.Parse(db.ctx, sql)
+}
+
+func (db *Instance) ParseOne(sql string) (ast.StmtNode, error) {
+	stmts, err := db.Parse(sql)
 	if err != nil {
 		return nil, err
 	}
 	if len(stmts) != 1 {
-		return nil, fmt.Errorf("multiple stmt found")
+		return nil, fmt.Errorf("not exactly one stmt")
 	}
 	return stmts[0], nil
 }
 
-func (db *TiDBInstance) Execute(sql string) (server.ResultSet, error) {
+func (db *Instance) ExecuteOne(sql string) (server.ResultSet, error) {
 	stmt, err := db.ParseOne(sql)
 	if err != nil {
 		return nil, err
@@ -63,7 +67,21 @@ func (db *TiDBInstance) Execute(sql string) (server.ResultSet, error) {
 	return db.qctx.ExecuteStmt(db.ctx, stmt)
 }
 
-func (db *TiDBInstance) CompileStmtNode(stmt ast.StmtNode) (*executor.ExecStmt, error) {
+func (db *Instance) Execute(sql string) error {
+	stmts, err := db.Parse(sql)
+	if err != nil {
+		return err
+	}
+	for _, stmt := range stmts {
+		_, err := db.qctx.ExecuteStmt(db.ctx, stmt)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (db *Instance) CompileStmtNode(stmt ast.StmtNode) (*executor.ExecStmt, error) {
 	compiler := executor.Compiler{Ctx: db.qctx.Session}
 	execStmt, err := compiler.Compile(db.ctx, stmt)
 	if err != nil {
@@ -72,7 +90,7 @@ func (db *TiDBInstance) CompileStmtNode(stmt ast.StmtNode) (*executor.ExecStmt, 
 	return execStmt, nil
 }
 
-func (db *TiDBInstance) Compile(sql string) (*executor.ExecStmt, error) {
+func (db *Instance) Compile(sql string) (*executor.ExecStmt, error) {
 	stmt, err := db.ParseOne(sql)
 	if err != nil {
 		return nil, err
