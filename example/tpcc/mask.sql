@@ -27,7 +27,7 @@ SELECT COALESCE(MIN(no_o_id),0) FROM new_orders WHERE no_d_id = 42 AND no_w_id =
 DELETE FROM new_orders WHERE no_o_id = 42 AND no_d_id = 42 AND no_w_id = 42;
 SELECT o_c_id FROM orders WHERE o_id = 42 AND o_d_id = 42 AND o_w_id = 42;
 UPDATE orders SET o_carrier_id = 42 WHERE o_id = 42 AND o_d_id = 42 AND o_w_id = 42;
-UPDATE order_line SET ol_delivery_d = 42 WHERE ol_o_id = 42 AND ol_d_id = 42 AND ol_w_id = 42;
+UPDATE order_line SET ol_delivery_d = '20-01-01' WHERE ol_o_id = 42 AND ol_d_id = 42 AND ol_w_id = 42;
 SELECT SUM(ol_amount) FROM order_line WHERE ol_o_id = 42 AND ol_d_id = 42 AND ol_w_id = 42;
 UPDATE customer SET c_balance = c_balance + 42 , c_delivery_cnt = c_delivery_cnt + 1 WHERE c_id = 42 AND c_d_id = 42 AND c_w_id = 42;
 SELECT d_next_o_id FROM district WHERE d_id = 42 AND d_w_id = 42;

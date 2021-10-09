@@ -81,6 +81,8 @@ func (g *CastGraph) doInfer(u Node, currType *types.FieldType, visited map[Node]
 		case NormalNode:
 			if currType.EvalType() == v.expr.GetType().EvalType() {
 				possibleTypes = append(possibleTypes, v.expr.GetType())
+			} else if column, ok := v.expr.(*expression.Column); ok {
+				possibleTypes = append(possibleTypes, column.GetType())
 			}
 		default:
 		}
@@ -113,6 +115,18 @@ func NewCastGraphBuilder() *CastGraphBuilder {
 	}
 }
 
+func (v *CastGraphBuilder) VisitUpdate(update plannercore.Update) {
+	v.Visit(update.SelectPlan)
+	for _, assignment := range update.OrderedList {
+		v.Graph.Add(assignment.Col, assignment.Expr)
+		v.VisitExpr(assignment.Expr)
+	}
+}
+
+func (v *CastGraphBuilder) VisitDelete(delete plannercore.Delete) {
+	v.Visit(delete.SelectPlan)
+}
+
 func (v *CastGraphBuilder) Visit(plan plannercore.PhysicalPlan) {
 	for _, child := range plan.Children() {
 		v.Visit(child)
@@ -125,7 +139,7 @@ func (v *CastGraphBuilder) Visit(plan plannercore.PhysicalPlan) {
 		}
 	case *plannercore.PhysicalSelection:
 		for _, expr := range p.Conditions {
-			v.visitExpr(expr)
+			v.VisitExpr(expr)
 		}
 	case *plannercore.PointGetPlan:
 		handle := p.Handle
@@ -134,7 +148,7 @@ func (v *CastGraphBuilder) Visit(plan plannercore.PhysicalPlan) {
 	}
 }
 
-func (v *CastGraphBuilder) visitExpr(expr Expr) {
+func (v *CastGraphBuilder) VisitExpr(expr Expr) {
 	switch e := expr.(type) {
 	case *expression.ScalarFunction:
 		args := e.GetArgs()
@@ -147,7 +161,7 @@ func (v *CastGraphBuilder) visitExpr(expr Expr) {
 			}
 		}
 		for _, expr := range args {
-			v.visitExpr(expr)
+			v.VisitExpr(expr)
 		}
 	case *expression.Constant:
 		v.Constants = append(v.Constants, e)

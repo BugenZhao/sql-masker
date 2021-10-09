@@ -61,13 +61,18 @@ func (w *Worker) infer(stmtNode ast.StmtNode) (TypeMap, error) {
 	if err != nil {
 		return nil, err
 	}
-	plan, ok := execStmt.Plan.(plannercore.PhysicalPlan)
-	if !ok {
-		return nil, fmt.Errorf("not a physical plan, a non-`select` statement?")
-	}
 
 	b := NewCastGraphBuilder()
-	b.Visit(plan)
+	switch plan := execStmt.Plan.(type) {
+	case plannercore.PhysicalPlan:
+		b.Visit(plan)
+	case *plannercore.Update:
+		b.VisitUpdate(*plan)
+	case *plannercore.Delete:
+		b.VisitDelete(*plan)
+	default:
+		return nil, fmt.Errorf("unrecognized plan `%T` :(", plan)
+	}
 
 	inferredTypes := make(TypeMap)
 	for _, c := range b.Constants {
