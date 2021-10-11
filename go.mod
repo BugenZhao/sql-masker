@@ -6,8 +6,8 @@ require (
 	github.com/fatih/color v1.13.0
 	github.com/jpillora/opts v1.2.0
 	github.com/pingcap/log v0.0.0-20210906054005-afc726e70354
-	github.com/pingcap/parser v0.0.0-20210917114242-ac711116bdff
-	github.com/pingcap/tidb v1.1.0-beta.0.20210929083847-091ae3bde0a5
+	github.com/pingcap/parser v0.0.0-20211004012448-687005894c4e
+	github.com/pingcap/tidb v1.1.0-beta.0.20211011083326-e8f4e47798d2
 	go.uber.org/zap v1.19.1
 )
 
