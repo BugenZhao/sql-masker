@@ -5,3 +5,7 @@ select * from t where name = 233 and id = 233 and cash = 233 and year(last_visit
 select * from t where name between 200 and 300;
 select * from t where cash >= 1.234e2;
 select * from t t1, t t2 where date(t1.last_visit) = '21-10-09' and t2.name in (233, "456");
+select year(birth) y, sum(cash) sum_of_cash from t where gender = 'M' group by y having sum_of_cash > 100 or y between 2000 and '2021';
+select * from t where cash in (select max(cash) from t where gender = 'M') and month(birth) = '12';
+select count(*) from t;
+insert into t(name, birth, cash, last_visit, gender) select concat(name, '2'), birth, '0', last_visit, gender from t where gender = 'M';

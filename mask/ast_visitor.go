@@ -2,37 +2,12 @@ package mask
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/pingcap/parser/ast"
 	"github.com/pingcap/tidb/sessionctx/stmtctx"
 	"github.com/pingcap/tidb/types"
 	driver "github.com/pingcap/tidb/types/parser_driver"
 )
-
-type DebugVisitor struct {
-	depth    int
-	colNames []string
-}
-
-func (v *DebugVisitor) Log(in ast.Node) {
-	indent := strings.Repeat("  ", v.depth)
-	fmt.Printf("%v%T: %v, %v\n", indent, in, in.Text(), in)
-}
-
-func (v *DebugVisitor) Enter(in ast.Node) (node ast.Node, skipChilren bool) {
-	v.depth += 1
-	v.Log(in)
-	if name, ok := in.(*ast.ColumnName); ok {
-		v.colNames = append(v.colNames, name.OrigColName())
-	}
-	return in, false
-}
-
-func (v *DebugVisitor) Leave(in ast.Node) (node ast.Node, ok bool) {
-	v.depth -= 1
-	return in, true
-}
 
 type ExprMap = map[int64]*driver.ValueExpr
 type TypeMap = map[int64]*types.FieldType

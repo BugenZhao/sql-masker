@@ -186,6 +186,8 @@ func (v *CastGraphBuilder) visitPhysicalPlan(plans ...plannercore.PhysicalPlan) 
 			v.visitExpr(p.Conditions...)
 		case *plannercore.PhysicalTableScan:
 			v.visitExpr(p.AccessCondition...)
+		case *plannercore.PhysicalProjection:
+			v.visitExpr(p.Exprs...)
 		case *plannercore.PointGetPlan:
 			v.visitExpr(p.AccessConditions...)
 			v.Handles = append(v.Handles, p.Handle)

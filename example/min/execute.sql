@@ -1,11 +1,12 @@
 USE test;
 
 CREATE TABLE t (
-    id INT PRIMARY KEY,
+    id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(42),
     birth DATE,
-    cash DECIMAL(6, 2),
-    last_visit DATETIME
+    cash DECIMAL(18, 4),
+    last_visit DATETIME,
+    gender CHAR(1)
 );
 
 INSERT INTO
@@ -16,5 +17,6 @@ VALUES
         '233',
         '2021-09-30',
         12.34,
-        '2021-10-09 16:33:33'
+        '2021-10-09 16:33:33',
+        'M'
     );
