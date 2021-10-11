@@ -10,6 +10,7 @@ import (
 	"github.com/pingcap/tidb/executor"
 	"github.com/pingcap/tidb/server"
 	"github.com/pingcap/tidb/session"
+	"github.com/pingcap/tidb/sessionctx/variable"
 	"github.com/pingcap/tidb/store/mockstore"
 	"go.uber.org/zap/zapcore"
 )
@@ -39,6 +40,11 @@ func NewInstance() (*Instance, error) {
 	if err != nil {
 		return nil, err
 	}
+	vars := qctx.GetSessionVars()
+	vars.AllowAggPushDown = false
+	vars.EnableClusteredIndex = variable.ClusteredIndexDefModeOff
+	vars.EnableIndexMergeJoin = false
+	vars.SetAllowInSubqToJoinAndAgg(false)
 
 	ctx := context.Background()
 	db := &Instance{

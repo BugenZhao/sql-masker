@@ -172,46 +172,49 @@ func (b *CastGraphBuilder) Build(plan plannercore.Plan) error {
 	return nil
 }
 
-func (v *CastGraphBuilder) visitPhysicalPlan(plan plannercore.PhysicalPlan) {
-	if plan == nil {
-		return
-	}
-	for _, child := range plan.Children() {
-		v.visitPhysicalPlan(child)
-	}
+func (v *CastGraphBuilder) visitPhysicalPlan(plans ...plannercore.PhysicalPlan) {
+	for _, plan := range plans {
+		if plan == nil {
+			continue
+		}
+		v.visitPhysicalPlan(plan.Children()...)
 
-	switch p := plan.(type) {
-	case *plannercore.PhysicalTableReader:
-		for _, plan := range p.TablePlans {
-			v.visitPhysicalPlan(plan)
+		switch p := plan.(type) {
+		case *plannercore.PhysicalTableReader:
+			v.visitPhysicalPlan(p.TablePlans...)
+		case *plannercore.PhysicalSelection:
+			v.visitExpr(p.Conditions...)
+		case *plannercore.PhysicalTableScan:
+			v.visitExpr(p.AccessCondition...)
+		case *plannercore.PointGetPlan:
+			v.visitExpr(p.AccessConditions...)
+			v.Handles = append(v.Handles, p.Handle)
+		case *plannercore.BatchPointGetPlan:
+			v.visitExpr(p.AccessConditions...)
+			v.Handles = append(v.Handles, p.Handles...)
+		default:
 		}
-	case *plannercore.PhysicalSelection:
-		for _, expr := range p.Conditions {
-			v.visitExpr(expr)
-		}
-	case *plannercore.PointGetPlan:
-		handle := p.Handle
-		v.Handles = append(v.Handles, handle)
-	default:
 	}
 }
 
-func (v *CastGraphBuilder) visitExpr(expr Expr) {
-	switch e := expr.(type) {
-	case *expression.ScalarFunction:
-		args := e.GetArgs()
-		if e.FuncName.L == "cast" {
-			v.Graph.Add(args[0], expr)
-		} else if len(args) == 2 {
-			left, right := args[0], args[1]
-			if left.GetType().EvalType() == right.GetType().EvalType() {
-				v.Graph.Add(left, right)
+func (v *CastGraphBuilder) visitExpr(exprs ...Expr) {
+	for _, expr := range exprs {
+		switch e := expr.(type) {
+		case *expression.ScalarFunction:
+			args := e.GetArgs()
+			if e.FuncName.L == "cast" {
+				v.Graph.Add(args[0], expr)
+			} else if len(args) == 2 {
+				left, right := args[0], args[1]
+				if left.GetType().EvalType() == right.GetType().EvalType() {
+					v.Graph.Add(left, right)
+				}
 			}
+			for _, expr := range args {
+				v.visitExpr(expr)
+			}
+		case *expression.Constant:
+			v.Constants = append(v.Constants, e)
 		}
-		for _, expr := range args {
-			v.visitExpr(expr)
-		}
-	case *expression.Constant:
-		v.Constants = append(v.Constants, e)
 	}
 }

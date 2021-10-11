@@ -7,6 +7,9 @@ import (
 	"github.com/BugenZhao/sql-masker/tidb"
 	"github.com/pingcap/parser/ast"
 	"github.com/pingcap/parser/format"
+	"github.com/pingcap/parser/mysql"
+	"github.com/pingcap/parser/types"
+	"github.com/pingcap/tidb/kv"
 )
 
 type Worker struct {
@@ -79,6 +82,14 @@ func (w *Worker) infer(stmtNode ast.StmtNode) (TypeMap, error) {
 			continue
 		}
 		inferredTypes[int64(f)] = tp
+	}
+	for _, h := range b.Handles {
+		switch h := h.(type) {
+		case kv.IntHandle:
+			inferredTypes[h.IntValue()] = types.NewFieldType(mysql.TypeLong) // todo: which tp ?
+		default:
+			// ignore common handle for clustered index
+		}
 	}
 
 	return inferredTypes, nil

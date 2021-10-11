@@ -1,7 +1,7 @@
 USE test;
 
 CREATE TABLE t (
-    id INT,
+    id INT PRIMARY KEY,
     name VARCHAR(42),
     birth DATE,
     cash DECIMAL(6, 2),
