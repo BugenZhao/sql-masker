@@ -19,9 +19,17 @@ func NewReplaceVisitor() *ReplaceVisitor {
 	}
 }
 
+var replaceMarkerStep int64 = 1000
+
 type ReplaceVisitor struct {
 	next        int64
 	OriginExprs ExprMap
+}
+
+func (v *ReplaceVisitor) nextMarker() int64 {
+	n := v.next
+	v.next += replaceMarkerStep
+	return n
 }
 
 func (v *ReplaceVisitor) Enter(in ast.Node) (node ast.Node, skipChilren bool) {
@@ -30,9 +38,9 @@ func (v *ReplaceVisitor) Enter(in ast.Node) (node ast.Node, skipChilren bool) {
 
 func (v *ReplaceVisitor) Leave(in ast.Node) (node ast.Node, ok bool) {
 	if expr, ok := in.(*driver.ValueExpr); ok {
-		replacedExpr := ast.NewValueExpr(v.next, "", "")
-		v.OriginExprs[v.next] = expr
-		v.next += 1
+		n := v.nextMarker()
+		replacedExpr := ast.NewValueExpr(n, "", "")
+		v.OriginExprs[n] = expr
 		return replacedExpr, true
 	}
 	return in, true
@@ -63,7 +71,7 @@ func (v *RestoreVisitor) appendError(err error) {
 	if v.err == nil {
 		v.err = err
 	} else {
-		v.err = fmt.Errorf("%v; %w", err, v.err)
+		v.err = fmt.Errorf("%w; %v", v.err, err)
 	}
 }
 
@@ -81,8 +89,15 @@ func (v *RestoreVisitor) Leave(in ast.Node) (_ ast.Node, ok bool) {
 		}
 		inferredType, ok := v.inferredTypes[i]
 		if !ok {
-			v.appendError(fmt.Errorf("type for `%v` not inferred", originExpr.Datum))
-			return originExpr, true
+			guessI := i*2 + replaceMarkerStep // hack for handle `a + b`
+			guessedType, ok := v.inferredTypes[guessI]
+			if ok {
+				v.appendError(fmt.Errorf("type for `%v` is guessed", originExpr.Datum))
+				inferredType = guessedType
+			} else {
+				v.appendError(fmt.Errorf("type for `%v` not inferred", originExpr.Datum))
+				return originExpr, true
+			}
 		}
 		castedDatum, err := originExpr.Datum.ConvertTo(v.stmtContext, inferredType)
 		if err != nil {
