@@ -1,14 +1,12 @@
 package mask
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/BugenZhao/sql-masker/tidb"
 	"github.com/pingcap/parser/ast"
 	"github.com/pingcap/parser/format"
-	plannercore "github.com/pingcap/tidb/planner/core"
 )
 
 type Worker struct {
@@ -63,15 +61,9 @@ func (w *Worker) infer(stmtNode ast.StmtNode) (TypeMap, error) {
 	}
 
 	b := NewCastGraphBuilder()
-	switch plan := execStmt.Plan.(type) {
-	case plannercore.PhysicalPlan:
-		b.Visit(plan)
-	case *plannercore.Update:
-		b.VisitUpdate(*plan)
-	case *plannercore.Delete:
-		b.VisitDelete(*plan)
-	default:
-		return nil, fmt.Errorf("unrecognized plan `%T` :(", plan)
+	err = b.Build(execStmt.Plan)
+	if err != nil {
+		return nil, err
 	}
 
 	inferredTypes := make(TypeMap)

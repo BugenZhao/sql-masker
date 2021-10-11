@@ -1,7 +1,7 @@
 SELECT c_discount, c_last, c_credit, w_tax FROM customer, warehouse WHERE w_id = 42 AND c_w_id = w_id AND c_d_id = 42 AND c_id = 42;
 SELECT d_next_o_id, d_tax FROM district WHERE d_id = 42 AND d_w_id = 42 FOR UPDATE;
 UPDATE district SET d_next_o_id = 42 + 1 WHERE d_id = 42 AND d_w_id = 42;
-INSERT INTO orders (o_id, o_d_id, o_w_id, o_c_id, o_entry_d, o_ol_cnt, o_all_local) VALUES(42, 42, 42, 42, 42, 42, 42);
+INSERT INTO orders (o_id, o_d_id, o_w_id, o_c_id, o_entry_d, o_ol_cnt, o_all_local) VALUES(42, 42, 42, 42, '20-01-01', 42, 42);
 INSERT INTO new_orders (no_o_id, no_d_id, no_w_id) VALUES (42,42,42);
 SELECT i_price, i_name, i_data FROM item WHERE i_id = 42;
 SELECT s_quantity, s_data, s_dist_01, s_dist_02, s_dist_03, s_dist_04, s_dist_05, s_dist_06, s_dist_07, s_dist_08, s_dist_09, s_dist_10 FROM stock WHERE s_i_id = 42 AND s_w_id = 42 FOR UPDATE;
@@ -17,7 +17,7 @@ SELECT c_first, c_middle, c_last, c_street_1, c_street_2, c_city, c_state, c_zip
 SELECT c_data FROM customer WHERE c_w_id = 42 AND c_d_id = 42 AND c_id = 42;
 UPDATE customer SET c_balance = 42, c_data = 42 WHERE c_w_id = 42 AND c_d_id = 42 AND c_id = 42;
 UPDATE customer SET c_balance = 42 WHERE c_w_id = 42 AND c_d_id = 42 AND c_id = 42;
-INSERT INTO history(h_c_d_id, h_c_w_id, h_c_id, h_d_id, h_w_id, h_date, h_amount, h_data) VALUES(42, 42, 42, 42, 42, 42, 42, 42);
+INSERT INTO history(h_c_d_id, h_c_w_id, h_c_id, h_d_id, h_w_id, h_date, h_amount, h_data) VALUES(42, 42, 42, 42, 42, '20-01-01', 42, 42);
 SELECT count(c_id) FROM customer WHERE c_w_id = 42 AND c_d_id = 42 AND c_last = 42;
 SELECT c_balance, c_first, c_middle, c_last FROM customer WHERE c_w_id = 42 AND c_d_id = 42 AND c_last = 42 ORDER BY c_first;
 SELECT c_balance, c_first, c_middle, c_last FROM customer WHERE c_w_id = 42 AND c_d_id = 42 AND c_id = 42;

@@ -99,7 +99,7 @@ func (v *RestoreVisitor) Leave(in ast.Node) (_ ast.Node, ok bool) {
 		}
 		castedDatum, err := originExpr.Datum.ConvertTo(v.stmtContext, inferredType)
 		if err != nil {
-			v.err = fmt.Errorf("cannot cast `%v` to type `%v`; %w", expr.Datum, inferredType, err)
+			v.err = fmt.Errorf("cannot cast `%v` to type `%v`; %w", originExpr.Datum, inferredType, err)
 			return originExpr, false
 		}
 

@@ -27,7 +27,7 @@ func DebugMask(datum types.Datum, tp *types.FieldType) (types.Datum, *types.Fiel
 	if err != nil {
 		datumDesc = datum.String()
 	}
-	info := fmt.Sprintf("%s %s", color.YellowString(tpDesc), color.CyanString(datumDesc))
+	info := fmt.Sprintf("%s %s", color.GreenString(tpDesc), color.CyanString(datumDesc))
 	return types.NewDatum(info), types.NewFieldType(mysql.TypeString), nil
 }
 

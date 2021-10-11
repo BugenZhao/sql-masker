@@ -115,31 +115,79 @@ func NewCastGraphBuilder() *CastGraphBuilder {
 	}
 }
 
-func (v *CastGraphBuilder) VisitUpdate(update plannercore.Update) {
-	v.Visit(update.SelectPlan)
+func (v *CastGraphBuilder) visitUpdate(update plannercore.Update) {
+	v.visitPhysicalPlan(update.SelectPlan)
 	for _, assignment := range update.OrderedList {
 		v.Graph.Add(assignment.Col, assignment.Expr)
-		v.VisitExpr(assignment.Expr)
+		v.visitExpr(assignment.Expr)
 	}
 }
 
-func (v *CastGraphBuilder) VisitDelete(delete plannercore.Delete) {
-	v.Visit(delete.SelectPlan)
+func (v *CastGraphBuilder) visitDelete(delete plannercore.Delete) {
+	v.visitPhysicalPlan(delete.SelectPlan)
 }
 
-func (v *CastGraphBuilder) Visit(plan plannercore.PhysicalPlan) {
+func (v *CastGraphBuilder) visitInsert(insert plannercore.Insert) {
+	v.visitPhysicalPlan(insert.SelectPlan)
+
+	columnMap := make(map[int]*expression.Column)
+	for i, colName := range insert.Columns {
+		lowerName := colName.Name.L
+		for _, col := range insert.Table.Cols() {
+			if lowerName == col.Name.L {
+				columnMap[i] = &expression.Column{
+					RetType: &col.FieldType,
+				}
+				break
+			}
+		}
+	}
+
+	for _, list := range insert.Lists {
+		if len(list) != len(insert.Columns) {
+			continue
+		}
+		for i, expr := range list {
+			if col, ok := columnMap[i]; ok {
+				v.Graph.Add(col, expr)
+				v.visitExpr(expr)
+			}
+		}
+	}
+}
+
+func (b *CastGraphBuilder) Build(plan plannercore.Plan) error {
+	switch plan := plan.(type) {
+	case plannercore.PhysicalPlan:
+		b.visitPhysicalPlan(plan)
+	case *plannercore.Update:
+		b.visitUpdate(*plan)
+	case *plannercore.Delete:
+		b.visitDelete(*plan)
+	case *plannercore.Insert:
+		b.visitInsert(*plan)
+	default:
+		return fmt.Errorf("unrecognized plan `%T` :(", plan)
+	}
+	return nil
+}
+
+func (v *CastGraphBuilder) visitPhysicalPlan(plan plannercore.PhysicalPlan) {
+	if plan == nil {
+		return
+	}
 	for _, child := range plan.Children() {
-		v.Visit(child)
+		v.visitPhysicalPlan(child)
 	}
 
 	switch p := plan.(type) {
 	case *plannercore.PhysicalTableReader:
 		for _, plan := range p.TablePlans {
-			v.Visit(plan)
+			v.visitPhysicalPlan(plan)
 		}
 	case *plannercore.PhysicalSelection:
 		for _, expr := range p.Conditions {
-			v.VisitExpr(expr)
+			v.visitExpr(expr)
 		}
 	case *plannercore.PointGetPlan:
 		handle := p.Handle
@@ -148,7 +196,7 @@ func (v *CastGraphBuilder) Visit(plan plannercore.PhysicalPlan) {
 	}
 }
 
-func (v *CastGraphBuilder) VisitExpr(expr Expr) {
+func (v *CastGraphBuilder) visitExpr(expr Expr) {
 	switch e := expr.(type) {
 	case *expression.ScalarFunction:
 		args := e.GetArgs()
@@ -161,16 +209,9 @@ func (v *CastGraphBuilder) VisitExpr(expr Expr) {
 			}
 		}
 		for _, expr := range args {
-			v.VisitExpr(expr)
+			v.visitExpr(expr)
 		}
 	case *expression.Constant:
 		v.Constants = append(v.Constants, e)
 	}
-}
-
-func (v *CastGraphBuilder) Print() {
-	for _, c := range v.Constants {
-		fmt.Printf("%T(%v) ", c, c)
-	}
-	fmt.Println()
 }

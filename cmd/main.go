@@ -9,6 +9,7 @@ import (
 
 	"github.com/BugenZhao/sql-masker/mask"
 	"github.com/BugenZhao/sql-masker/tidb"
+	"github.com/fatih/color"
 	"github.com/jpillora/opts"
 )
 
@@ -18,7 +19,7 @@ type Opt struct {
 
 func main() {
 	opt := &Opt{
-		Dir: "example/min",
+		Dir: "example/tpcc",
 	}
 	opts.Parse(opt)
 
@@ -51,10 +52,10 @@ func play(opt *Opt) error {
 		newSQL, err := masker.MaskOne(sql)
 		if err != nil {
 			if newSQL == "" || newSQL == sql {
-				fmt.Printf("!> %v\n", err)
+				color.Red("!> %v\n", err)
 				continue
 			} else {
-				fmt.Printf("?> %v\n", err)
+				color.Yellow("?> %v\n", err)
 			}
 		}
 		fmt.Printf("=> %s\n", newSQL)
@@ -65,9 +66,10 @@ func play(opt *Opt) error {
 ====Summary====
 Success      %d
 Problematic  %d
+Failed       %d
 Total        %d
 `,
-		masker.Success, masker.Problematic, masker.All)
+		masker.Success, masker.Problematic, masker.All-masker.Success-masker.Problematic, masker.All)
 	return nil
 }
 
