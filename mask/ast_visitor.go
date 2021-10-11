@@ -84,6 +84,14 @@ type RestoreVisitor struct {
 	err           error
 }
 
+func (v *RestoreVisitor) appendError(err error) {
+	if v.err == nil {
+		v.err = err
+	} else {
+		v.err = fmt.Errorf("%v; %w", err, v.err)
+	}
+}
+
 func (v *RestoreVisitor) Enter(in ast.Node) (_ ast.Node, skipChilren bool) {
 	return in, false
 }
@@ -91,21 +99,25 @@ func (v *RestoreVisitor) Enter(in ast.Node) (_ ast.Node, skipChilren bool) {
 func (v *RestoreVisitor) Leave(in ast.Node) (_ ast.Node, ok bool) {
 	if expr, ok := in.(*driver.ValueExpr); ok {
 		i := expr.Datum.GetInt64()
-		originExpr := v.originExprs[i]
+		originExpr, ok := v.originExprs[i]
+		if !ok {
+			v.appendError(fmt.Errorf("no replace record found for `%v`", expr.Datum))
+			return in, false
+		}
 		inferredType, ok := v.inferredTypes[i]
 		if !ok {
-			v.err = fmt.Errorf("type for `%v` not inferred", originExpr.Datum)
+			v.appendError(fmt.Errorf("type for `%v` not inferred", originExpr.Datum))
 			return originExpr, true
 		}
 		castedDatum, err := originExpr.Datum.ConvertTo(v.stmtContext, inferredType)
 		if err != nil {
-			v.err = fmt.Errorf("cannot cast `%v` to type `%v`; %w", originExpr.Datum, inferredType, err)
+			v.appendError(fmt.Errorf("cannot cast `%v` to type `%v`; %w", originExpr.Datum, inferredType, err))
 			return originExpr, false
 		}
 
 		maskedDatum, maskedType, err := v.maskFunc(castedDatum, inferredType)
 		if err != nil {
-			v.err = fmt.Errorf("failed to mask `%v`; %w", castedDatum, err)
+			v.appendError(fmt.Errorf("failed to mask `%v`; %w", castedDatum, err))
 			return originExpr, false
 		}
 		if maskedType == nil {
