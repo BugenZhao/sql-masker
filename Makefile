@@ -28,6 +28,9 @@ export PATH := $(CURDIR)/bin/:$(PATH)
 cli:
 	$(GOBUILD) -o bin/sql-masker ./cmd
 
+sql-%: cli
+	bin/sql-masker --ddl example/$*/execute.sql sql -f example/$*/mask.sql
+
 test:
 	$(GOTEST) ./...
 
