@@ -8,6 +8,7 @@ require (
 	github.com/pingcap/log v0.0.0-20210906054005-afc726e70354
 	github.com/pingcap/parser v0.0.0-20211004012448-687005894c4e
 	github.com/pingcap/tidb v1.1.0-beta.0.20211011083326-e8f4e47798d2
+	github.com/zyguan/mysql-replay v0.0.0-20211008084918-01715661643b
 	go.uber.org/zap v1.19.1
 )
 
@@ -76,7 +77,7 @@ require (
 	github.com/ngaut/pools v0.0.0-20180318154953-b7bc8c42aac7 // indirect
 	github.com/ngaut/sync2 v0.0.0-20141008032647-7a24ed77b2ef // indirect
 	github.com/opentracing/basictracer-go v1.0.0 // indirect
-	github.com/opentracing/opentracing-go v1.1.0 // indirect
+	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/phf/go-queue v0.0.0-20170504031614-9abe38d0371d // indirect
 	github.com/pingcap/badger v1.5.1-0.20210831093107-2f6cb8008145 // indirect
 	github.com/pingcap/errcode v0.3.0 // indirect

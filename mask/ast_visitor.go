@@ -9,24 +9,36 @@ import (
 	driver "github.com/pingcap/tidb/types/parser_driver"
 )
 
-type ExprMap = map[int64]*driver.ValueExpr
-type TypeMap = map[int64]*types.FieldType
+type ReplaceMarker int64
+type ExprMap = map[ReplaceMarker]*driver.ValueExpr
+type ExprOffsetMap = map[ReplaceMarker]int
+type TypeMap = map[ReplaceMarker]*types.FieldType
 
-func NewReplaceVisitor() *ReplaceVisitor {
+type ReplaceMode int
+
+const (
+	ReplaceModeValue ReplaceMode = iota
+	ReplaceModeParamMarker
+)
+
+const replaceMarkerStep ReplaceMarker = 1000
+
+func NewReplaceVisitor(mode ReplaceMode) *ReplaceVisitor {
 	return &ReplaceVisitor{
+		mode:        mode,
 		next:        1001,
 		OriginExprs: make(ExprMap),
 	}
 }
 
-var replaceMarkerStep int64 = 1000
-
 type ReplaceVisitor struct {
-	next        int64
+	mode        ReplaceMode
+	next        ReplaceMarker
 	OriginExprs ExprMap
+	Offsets     ExprOffsetMap
 }
 
-func (v *ReplaceVisitor) nextMarker() int64 {
+func (v *ReplaceVisitor) nextMarker() ReplaceMarker {
 	n := v.next
 	v.next += replaceMarkerStep
 	return n
@@ -37,12 +49,23 @@ func (v *ReplaceVisitor) Enter(in ast.Node) (node ast.Node, skipChilren bool) {
 }
 
 func (v *ReplaceVisitor) Leave(in ast.Node) (node ast.Node, ok bool) {
-	if expr, ok := in.(*driver.ValueExpr); ok {
-		n := v.nextMarker()
-		replacedExpr := ast.NewValueExpr(n, "", "")
-		v.OriginExprs[n] = expr
-		return replacedExpr, true
+	switch v.mode {
+	case ReplaceModeValue:
+		if expr, ok := in.(*driver.ValueExpr); ok {
+			n := v.nextMarker()
+			replacedExpr := ast.NewValueExpr(n, "", "")
+			v.OriginExprs[n] = expr
+			return replacedExpr, true
+		}
+	case ReplaceModeParamMarker:
+		if expr, ok := in.(*driver.ParamMarkerExpr); ok {
+			n := v.nextMarker()
+			replacedExpr := ast.NewValueExpr(n, "", "")
+			v.Offsets[n] = expr.Offset
+			return replacedExpr, true
+		}
 	}
+
 	return in, true
 }
 
@@ -81,7 +104,7 @@ func (v *RestoreVisitor) Enter(in ast.Node) (_ ast.Node, skipChilren bool) {
 
 func (v *RestoreVisitor) Leave(in ast.Node) (_ ast.Node, ok bool) {
 	if expr, ok := in.(*driver.ValueExpr); ok {
-		i := expr.Datum.GetInt64()
+		i := ReplaceMarker(expr.Datum.GetInt64())
 		originExpr, ok := v.originExprs[i]
 		if !ok {
 			v.appendError(fmt.Errorf("no replace record found for `%v`", expr.Datum))
@@ -99,19 +122,11 @@ func (v *RestoreVisitor) Leave(in ast.Node) (_ ast.Node, ok bool) {
 				return originExpr, true
 			}
 		}
-		castedDatum, err := originExpr.Datum.ConvertTo(v.stmtContext, inferredType)
-		if err != nil {
-			v.appendError(fmt.Errorf("cannot cast `%v` to type `%v`; %w", originExpr.Datum, inferredType, err))
-			return originExpr, false
-		}
 
-		maskedDatum, maskedType, err := v.maskFunc(castedDatum, inferredType)
+		maskedDatum, maskedType, err := ConvertAndMask(v.stmtContext, originExpr.Datum, inferredType, v.maskFunc)
 		if err != nil {
-			v.appendError(fmt.Errorf("failed to mask `%v`; %w", castedDatum, err))
+			v.appendError(err)
 			return originExpr, false
-		}
-		if maskedType == nil {
-			maskedType = inferredType
 		}
 
 		restoredExpr := ast.NewValueExpr(maskedDatum.GetValue(), "", "")

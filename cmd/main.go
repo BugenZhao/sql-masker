@@ -49,7 +49,7 @@ func play(opt *Opt) error {
 	go readSQLs(opt.Dir+"/mask.sql", maskSQLs)
 	for sql := range maskSQLs {
 		fmt.Printf("\n-> %s\n", sql)
-		newSQL, err := masker.MaskOne(sql)
+		newSQL, err := masker.MaskOneQuery(sql)
 		if err != nil {
 			if newSQL == "" || newSQL == sql {
 				color.Red("!> %v\n", err)
