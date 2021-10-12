@@ -113,7 +113,7 @@ func (w *Worker) infer(stmtNode ast.StmtNode) (TypeMap, error) {
 		if err != nil {
 			continue
 		}
-		inferredTypes[ReplaceMarker(int64(f))] = tp
+		inferredTypes[ReplaceMarker(f)] = tp
 	}
 	for _, h := range b.Handles {
 		switch h := h.(type) {

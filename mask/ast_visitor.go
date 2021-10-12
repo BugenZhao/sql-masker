@@ -23,6 +23,10 @@ const (
 
 const replaceMarkerStep ReplaceMarker = 1000
 
+func (m ReplaceMarker) IntValue() int64 {
+	return int64(m)
+}
+
 func NewReplaceVisitor(mode ReplaceMode) *ReplaceVisitor {
 	return &ReplaceVisitor{
 		mode:        mode,
@@ -53,14 +57,14 @@ func (v *ReplaceVisitor) Leave(in ast.Node) (node ast.Node, ok bool) {
 	case ReplaceModeValue:
 		if expr, ok := in.(*driver.ValueExpr); ok {
 			n := v.nextMarker()
-			replacedExpr := ast.NewValueExpr(n, "", "")
+			replacedExpr := ast.NewValueExpr(n.IntValue(), "", "")
 			v.OriginExprs[n] = expr
 			return replacedExpr, true
 		}
 	case ReplaceModeParamMarker:
 		if expr, ok := in.(*driver.ParamMarkerExpr); ok {
 			n := v.nextMarker()
-			replacedExpr := ast.NewValueExpr(n, "", "")
+			replacedExpr := ast.NewValueExpr(n.IntValue(), "", "")
 			v.Offsets[n] = expr.Offset
 			return replacedExpr, true
 		}
