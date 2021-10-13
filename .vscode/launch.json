@@ -14,8 +14,8 @@
       "args": [
         "-d",
         "example/min/ddl",
-        "-d",
-        "example/min/ddl-post",
+        "-p",
+        "example/min/prepare",
         "sql",
         "-f",
         "example/min/mask.sql"
@@ -31,8 +31,6 @@
       "args": [
         "-d",
         "example/tpcc/ddl",
-        "-d",
-        "example/tpcc/ddl-post",
         "event",
         "-f",
         "example/tpcc/events.tsv"
