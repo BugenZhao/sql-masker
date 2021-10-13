@@ -70,6 +70,8 @@ func (v *ReplaceVisitor) Leave(in ast.Node) (node ast.Node, ok bool) {
 			return replacedExpr, true
 		}
 		if _, ok := in.(*driver.ValueExpr); ok {
+			// HACK: replace all constants with `1` for better inference even after plan rewriting
+			//       this is ok since we do not restore `PREPARE` statements
 			replacedExpr := ast.NewValueExpr(1, "", "")
 			return replacedExpr, true
 		}
@@ -121,7 +123,8 @@ func (v *RestoreVisitor) Leave(in ast.Node) (_ ast.Node, ok bool) {
 		}
 		inferredType, ok := v.inferredTypes[m]
 		if !ok {
-			guessI := m*2 + replaceMarkerStep // hack for handle `a + b`
+			// DIRTY HACK: handle `a + b`
+			guessI := m*2 + replaceMarkerStep
 			guessedType, ok := v.inferredTypes[guessI]
 			if ok {
 				v.appendError(fmt.Errorf("type for `%v` is guessed", originExpr.Datum))

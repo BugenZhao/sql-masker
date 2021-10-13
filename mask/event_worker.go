@@ -63,6 +63,7 @@ func (w *EventWorker) MaskOneExecute(stmtID uint64, params []interface{}) ([]int
 		originDatum := types.NewDatum(param)
 
 		marker := p.sortedMarkers[i]
+		// HACK: handle `? +/-/*/div {constant}`
 		possibleMarkers := []ReplaceMarker{
 			marker,
 			marker - 1,
