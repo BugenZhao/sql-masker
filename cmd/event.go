@@ -11,7 +11,7 @@ import (
 )
 
 type EventOption struct {
-	File string `opts:"help=file"`
+	File string `opts:"help=MySQL event text file to mask"`
 }
 
 func (opt *EventOption) Run() error {

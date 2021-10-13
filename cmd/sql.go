@@ -8,7 +8,7 @@ import (
 )
 
 type SQLOption struct {
-	File string `opts:"help=file"`
+	File string `opts:"help=SQL file to mask"`
 }
 
 func (opt *SQLOption) Run() error {

@@ -2,7 +2,7 @@ SELECT c_discount, c_last, c_credit, w_tax FROM customer, warehouse WHERE w_id =
 SELECT d_next_o_id, d_tax FROM district WHERE d_id = 42 AND d_w_id = 42 FOR UPDATE;
 UPDATE district SET d_next_o_id = 42 + 1 WHERE d_id = 42 AND d_w_id = 42;
 INSERT INTO orders (o_id, o_d_id, o_w_id, o_c_id, o_entry_d, o_ol_cnt, o_all_local) VALUES(42, 42, 42, 42, '20-01-01', 42, 42);
-INSERT INTO new_orders (no_o_id, no_d_id, no_w_id) VALUES (42,42,42);
+INSERT INTO new_order (no_o_id, no_d_id, no_w_id) VALUES (42,42,42);
 SELECT i_price, i_name, i_data FROM item WHERE i_id = 42;
 SELECT s_quantity, s_data, s_dist_01, s_dist_02, s_dist_03, s_dist_04, s_dist_05, s_dist_06, s_dist_07, s_dist_08, s_dist_09, s_dist_10 FROM stock WHERE s_i_id = 42 AND s_w_id = 42 FOR UPDATE;
 UPDATE stock SET s_quantity = 42 WHERE s_i_id = 42 AND s_w_id = 42;
@@ -23,8 +23,8 @@ SELECT c_balance, c_first, c_middle, c_last FROM customer WHERE c_w_id = 42 AND 
 SELECT c_balance, c_first, c_middle, c_last FROM customer WHERE c_w_id = 42 AND c_d_id = 42 AND c_id = 42;
 SELECT o_id, o_entry_d, COALESCE(o_carrier_id,0) FROM orders WHERE o_w_id = 42 AND o_d_id = 42 AND o_c_id = 42 AND o_id = (SELECT MAX(o_id) FROM orders WHERE o_w_id = 42 AND o_d_id = 42 AND o_c_id = 42);
 SELECT ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_delivery_d FROM order_line WHERE ol_w_id = 42 AND ol_d_id = 42 AND ol_o_id = 42;
-SELECT COALESCE(MIN(no_o_id),0) FROM new_orders WHERE no_d_id = 42 AND no_w_id = 42;
-DELETE FROM new_orders WHERE no_o_id = 42 AND no_d_id = 42 AND no_w_id = 42;
+SELECT COALESCE(MIN(no_o_id),0) FROM new_order WHERE no_d_id = 42 AND no_w_id = 42;
+DELETE FROM new_order WHERE no_o_id = 42 AND no_d_id = 42 AND no_w_id = 42;
 SELECT o_c_id FROM orders WHERE o_id = 42 AND o_d_id = 42 AND o_w_id = 42;
 UPDATE orders SET o_carrier_id = 42 WHERE o_id = 42 AND o_d_id = 42 AND o_w_id = 42;
 UPDATE order_line SET ol_delivery_d = '20-01-01' WHERE ol_o_id = 42 AND ol_d_id = 42 AND ol_w_id = 42;

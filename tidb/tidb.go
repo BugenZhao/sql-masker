@@ -81,18 +81,27 @@ func (db *Instance) ExecuteOne(sql string) (server.ResultSet, error) {
 	return db.qctx.ExecuteStmt(db.ctx, stmt)
 }
 
-func (db *Instance) Execute(sql string) error {
+type StmtTransform = func(ast.StmtNode) ast.StmtNode
+
+func (db *Instance) ExecuteWithTransform(sql string, transform StmtTransform) error {
 	stmts, err := db.Parse(sql)
 	if err != nil {
 		return err
 	}
 	for _, stmt := range stmts {
+		if transform != nil {
+			stmt = transform(stmt)
+		}
 		_, err := db.qctx.ExecuteStmt(db.ctx, stmt)
 		if err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func (db *Instance) Execute(sql string) error {
+	return db.ExecuteWithTransform(sql, nil)
 }
 
 func (db *Instance) CompileStmtNode(stmt ast.StmtNode) (*executor.ExecStmt, error) {

@@ -31,6 +31,9 @@ cli:
 sql-%: cli
 	bin/sql-masker -d example/$*/ddl -d example/$*/ddl-post sql -f example/$*/mask.sql
 
+event-%: cli
+	bin/sql-masker -d example/$*/ddl -d example/$*/ddl-post event -f example/$*/events.tsv
+
 test:
 	$(GOTEST) ./...
 

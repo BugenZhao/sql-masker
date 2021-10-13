@@ -5,6 +5,9 @@ import (
 	"io"
 	"os"
 	"strings"
+
+	"github.com/BugenZhao/sql-masker/tidb"
+	"github.com/pingcap/parser/ast"
 )
 
 func ReadSQLs(out chan<- string, sqlPaths ...string) {
@@ -28,4 +31,28 @@ func ReadSQLs(out chan<- string, sqlPaths ...string) {
 			out <- strings.TrimSpace(sql)
 		}
 	}
+}
+
+var (
+	_ tidb.StmtTransform = filterOutConstraints
+)
+
+func filterOutConstraints(s ast.StmtNode) ast.StmtNode {
+	if s, ok := s.(*ast.CreateTableStmt); ok {
+		s.Constraints = []*ast.Constraint{}
+		// todo: check whether required to filter out column options like `primary key`, since we may be able to handle it ?
+
+		// for _, col := range s.Cols {
+		// 	options := []*ast.ColumnOption{}
+		// 	for _, option := range col.Options {
+		// 		switch option.Tp {
+		// 		case ast.ColumnOptionUniqKey, ast.ColumnOptionPrimaryKey:
+		// 		default:
+		// 			options = append(options, option)
+		// 		}
+		// 	}
+		// 	col.Options = options
+		// }
+	}
+	return s
 }

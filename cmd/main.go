@@ -9,17 +9,19 @@ import (
 )
 
 type Option struct {
-	SQLOption   `opts:"mode=cmd, name=sql,   help=Mask SQL queries"`
-	EventOption `opts:"mode=cmd, name=event, help=Mask MySQL events"`
-	DDLDir      []string `opts:""`
-	Db          string   `opts:""`
+	SQLOption            `opts:"mode=cmd, name=sql,   help=Mask SQL queries"`
+	EventOption          `opts:"mode=cmd, name=event, help=Mask MySQL events"`
+	DDLDir               []string `opts:"help=directories to DDL SQL files"`
+	Db                   string   `opts:"help=default database to use"`
+	FilterOutConstraints bool     `opts:"help=whether to filter out table constraints for DDL"`
 }
 
 var option *Option
 
 func main() {
 	option = &Option{
-		Db: "test",
+		Db:                   "test",
+		FilterOutConstraints: true,
 	}
 	opts.Parse(option).RunFatal()
 }
@@ -38,7 +40,11 @@ func NewDefinedInstance() (*tidb.Instance, error) {
 		paths, _ := filepath.Glob(dir + "/*.sql")
 		go ReadSQLs(ddls, paths...)
 		for sql := range ddls {
-			err = db.Execute(sql)
+			if option.FilterOutConstraints {
+				err = db.ExecuteWithTransform(sql, filterOutConstraints)
+			} else {
+				err = db.Execute(sql)
+			}
 			if err != nil {
 				return nil, err
 			}
