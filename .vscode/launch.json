@@ -12,8 +12,10 @@
       "program": "${workspaceFolder}/cmd",
       "cwd": "${workspaceFolder}",
       "args": [
-        "--ddl",
-        "example/min/execute.sql",
+        "-d",
+        "example/min/ddl",
+        "-d",
+        "example/min/ddl-post",
         "sql",
         "-f",
         "example/min/mask.sql"
@@ -27,8 +29,10 @@
       "program": "${workspaceFolder}/cmd",
       "cwd": "${workspaceFolder}",
       "args": [
-        "--ddl",
-        "example/tpcc/execute.sql",
+        "-d",
+        "example/tpcc/ddl",
+        "-d",
+        "example/tpcc/ddl-post",
         "event",
         "-f",
         "example/tpcc/events.tsv"

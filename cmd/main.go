@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"path/filepath"
+
 	"github.com/BugenZhao/sql-masker/tidb"
 	"github.com/jpillora/opts"
 )
@@ -8,13 +11,16 @@ import (
 type Option struct {
 	SQLOption   `opts:"mode=cmd, name=sql,   help=Mask SQL queries"`
 	EventOption `opts:"mode=cmd, name=event, help=Mask MySQL events"`
-	DDLFile     string `opts:"name=ddl"`
+	DDLDir      []string `opts:""`
+	Db          string   `opts:""`
 }
 
 var option *Option
 
 func main() {
-	option = &Option{}
+	option = &Option{
+		Db: "test",
+	}
 	opts.Parse(option).RunFatal()
 }
 
@@ -24,9 +30,13 @@ func NewDefinedInstance() (*tidb.Instance, error) {
 		return nil, err
 	}
 
-	if option.DDLFile != "" {
+	db.Execute(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s`", option.Db))
+	db.Execute(fmt.Sprintf("USE `%s`", option.Db))
+
+	for _, dir := range option.DDLDir {
 		ddls := make(chan string)
-		go ReadSQLs(option.DDLFile, ddls)
+		paths, _ := filepath.Glob(dir + "/*.sql")
+		go ReadSQLs(ddls, paths...)
 		for sql := range ddls {
 			err = db.Execute(sql)
 			if err != nil {

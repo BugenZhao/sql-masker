@@ -7,22 +7,25 @@ import (
 	"strings"
 )
 
-func ReadSQLs(path string, sqlOut chan<- string) {
-	defer close(sqlOut)
-	file, err := os.Open(path)
-	if err != nil {
-		panic(err)
-	}
-	defer file.Close()
+func ReadSQLs(out chan<- string, sqlPaths ...string) {
+	defer close(out)
 
-	reader := bufio.NewReader(file)
-	for {
-		sql, err := reader.ReadString(';')
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			return
+	for _, path := range sqlPaths {
+		file, err := os.Open(path)
+		if err != nil {
+			panic(err)
 		}
-		sqlOut <- strings.TrimSpace(sql)
+		defer file.Close()
+
+		reader := bufio.NewReader(file)
+		for {
+			sql, err := reader.ReadString(';')
+			if err == io.EOF {
+				break
+			} else if err != nil {
+				return
+			}
+			out <- strings.TrimSpace(sql)
+		}
 	}
 }

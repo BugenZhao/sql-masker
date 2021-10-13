@@ -22,5 +22,5 @@ func (w *SQLWorker) MaskOne(sql string) (string, error) {
 		w.Stats.Problematic += 1
 	}
 
-	return newSQL, nil
+	return newSQL, err
 }

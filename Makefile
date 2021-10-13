@@ -29,7 +29,7 @@ cli:
 	$(GOBUILD) -o bin/sql-masker ./cmd
 
 sql-%: cli
-	bin/sql-masker --ddl example/$*/execute.sql sql -f example/$*/mask.sql
+	bin/sql-masker -d example/$*/ddl -d example/$*/ddl-post sql -f example/$*/mask.sql
 
 test:
 	$(GOTEST) ./...
