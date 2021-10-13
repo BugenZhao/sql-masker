@@ -5,7 +5,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Launch Package",
+      "name": "Launch SQL Example",
       "type": "go",
       "request": "launch",
       "mode": "auto",
@@ -17,6 +17,21 @@
         "sql",
         "-f",
         "example/min/mask.sql"
+      ]
+    },
+    {
+      "name": "Launch Event Example",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "--ddl",
+        "example/tpcc/execute.sql",
+        "event",
+        "-f",
+        "example/tpcc/events.tsv"
       ]
     }
   ]

@@ -184,9 +184,25 @@ func (w *Worker) MaskOneExecute(stmtID uint64, params []interface{}) ([]interfac
 	maskedParams := []interface{}{}
 
 	for i, param := range params {
-		marker := p.sortedMarkers[i]
-		tp := p.typeMap[marker]
 		originDatum := types.NewDatum(param)
+
+		marker := p.sortedMarkers[i]
+		possibleMarkers := []ReplaceMarker{
+			marker,
+			marker - 1,
+			marker + 1,
+		}
+
+		var tp *types.FieldType
+		for _, marker := range possibleMarkers {
+			tp, ok = p.typeMap[marker]
+			if ok {
+				break
+			}
+		}
+		if tp == nil {
+			return params, fmt.Errorf("type for `%v` not inferred", originDatum)
+		}
 
 		maskedDatum, _, err := ConvertAndMask(sc, originDatum, tp, w.maskFunc)
 		if err != nil {

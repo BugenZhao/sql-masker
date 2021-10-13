@@ -1,0 +1,115 @@
+1630353804698	0	"test"
+1630353804715	3	1	"SELECT c_discount, c_last, c_credit, w_tax FROM customer, warehouse WHERE w_id = ? AND c_w_id = w_id AND c_d_id = ? AND c_id = ?"
+1630353804716	3	2	"SELECT d_next_o_id, d_tax FROM district WHERE d_id = ? AND d_w_id = ? FOR UPDATE"
+1630353804736	3	3	"UPDATE district SET d_next_o_id = ? + 1 WHERE d_id = ? AND d_w_id = ?"
+1630353804736	3	4	"INSERT INTO orders (o_id, o_d_id, o_w_id, o_c_id, o_entry_d, o_ol_cnt, o_all_local) VALUES (?, ?, ?, ?, ?, ?, ?)"
+1630353804738	3	5	"INSERT INTO new_order (no_o_id, no_d_id, no_w_id) VALUES (?, ?, ?)"
+1630353804738	3	6	"UPDATE stock SET s_quantity = ?, s_ytd = s_ytd + ?, s_order_cnt = s_order_cnt + 1, s_remote_cnt = s_remote_cnt + ? WHERE s_i_id = ? AND s_w_id = ?"
+1630353804742	3	7	"SELECT i_price, i_name, i_data, i_id FROM item WHERE i_id IN (?,?,?,?,?)"
+1630353804806	3	8	"SELECT s_i_id, s_quantity, s_data, s_dist_01, s_dist_02, s_dist_03, s_dist_04, s_dist_05, s_dist_06, s_dist_07, s_dist_08, s_dist_09, s_dist_10 FROM stock WHERE (s_w_id, s_i_id) IN ((?,?),(?,?),(?,?),(?,?),(?,?)) FOR UPDATE"
+1630353804807	3	9	"INSERT into order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_dist_info) VALUES (?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?)"
+1630353804826	3	10	"SELECT i_price, i_name, i_data, i_id FROM item WHERE i_id IN (?,?,?,?,?,?)"
+1630353804860	3	11	"SELECT s_i_id, s_quantity, s_data, s_dist_01, s_dist_02, s_dist_03, s_dist_04, s_dist_05, s_dist_06, s_dist_07, s_dist_08, s_dist_09, s_dist_10 FROM stock WHERE (s_w_id, s_i_id) IN ((?,?),(?,?),(?,?),(?,?),(?,?),(?,?)) FOR UPDATE"
+1630353804860	3	12	"INSERT into order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_dist_info) VALUES (?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?)"
+1630353804885	3	13	"SELECT i_price, i_name, i_data, i_id FROM item WHERE i_id IN (?,?,?,?,?,?,?)"
+1630353804885	3	14	"SELECT s_i_id, s_quantity, s_data, s_dist_01, s_dist_02, s_dist_03, s_dist_04, s_dist_05, s_dist_06, s_dist_07, s_dist_08, s_dist_09, s_dist_10 FROM stock WHERE (s_w_id, s_i_id) IN ((?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?)) FOR UPDATE"
+1630353804907	3	15	"INSERT into order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_dist_info) VALUES (?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?)"
+1630353804908	3	16	"SELECT i_price, i_name, i_data, i_id FROM item WHERE i_id IN (?,?,?,?,?,?,?,?)"
+1630353804909	3	17	"SELECT s_i_id, s_quantity, s_data, s_dist_01, s_dist_02, s_dist_03, s_dist_04, s_dist_05, s_dist_06, s_dist_07, s_dist_08, s_dist_09, s_dist_10 FROM stock WHERE (s_w_id, s_i_id) IN ((?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?)) FOR UPDATE"
+1630353804910	3	18	"INSERT into order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_dist_info) VALUES (?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?)"
+1630353804910	3	19	"SELECT i_price, i_name, i_data, i_id FROM item WHERE i_id IN (?,?,?,?,?,?,?,?,?)"
+1630353804911	3	20	"SELECT s_i_id, s_quantity, s_data, s_dist_01, s_dist_02, s_dist_03, s_dist_04, s_dist_05, s_dist_06, s_dist_07, s_dist_08, s_dist_09, s_dist_10 FROM stock WHERE (s_w_id, s_i_id) IN ((?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?)) FOR UPDATE"
+1630353804912	3	21	"INSERT into order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_dist_info) VALUES (?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?)"
+1630353804913	3	22	"SELECT i_price, i_name, i_data, i_id FROM item WHERE i_id IN (?,?,?,?,?,?,?,?,?,?)"
+1630353804965	3	23	"SELECT s_i_id, s_quantity, s_data, s_dist_01, s_dist_02, s_dist_03, s_dist_04, s_dist_05, s_dist_06, s_dist_07, s_dist_08, s_dist_09, s_dist_10 FROM stock WHERE (s_w_id, s_i_id) IN ((?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?)) FOR UPDATE"
+1630353804966	3	24	"INSERT into order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_dist_info) VALUES (?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?)"
+1630353805021	3	25	"SELECT i_price, i_name, i_data, i_id FROM item WHERE i_id IN (?,?,?,?,?,?,?,?,?,?,?)"
+1630353805022	3	26	"SELECT s_i_id, s_quantity, s_data, s_dist_01, s_dist_02, s_dist_03, s_dist_04, s_dist_05, s_dist_06, s_dist_07, s_dist_08, s_dist_09, s_dist_10 FROM stock WHERE (s_w_id, s_i_id) IN ((?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?)) FOR UPDATE"
+1630353805023	3	27	"INSERT into order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_dist_info) VALUES (?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?)"
+1630353805028	3	28	"SELECT i_price, i_name, i_data, i_id FROM item WHERE i_id IN (?,?,?,?,?,?,?,?,?,?,?,?)"
+1630353805030	3	29	"SELECT s_i_id, s_quantity, s_data, s_dist_01, s_dist_02, s_dist_03, s_dist_04, s_dist_05, s_dist_06, s_dist_07, s_dist_08, s_dist_09, s_dist_10 FROM stock WHERE (s_w_id, s_i_id) IN ((?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?)) FOR UPDATE"
+1630353805032	3	30	"INSERT into order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_dist_info) VALUES (?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?)"
+1630353805033	3	31	"SELECT i_price, i_name, i_data, i_id FROM item WHERE i_id IN (?,?,?,?,?,?,?,?,?,?,?,?,?)"
+1630353805034	3	32	"SELECT s_i_id, s_quantity, s_data, s_dist_01, s_dist_02, s_dist_03, s_dist_04, s_dist_05, s_dist_06, s_dist_07, s_dist_08, s_dist_09, s_dist_10 FROM stock WHERE (s_w_id, s_i_id) IN ((?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?)) FOR UPDATE"
+1630353805035	3	33	"INSERT into order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_dist_info) VALUES (?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?)"
+1630353805036	3	34	"SELECT i_price, i_name, i_data, i_id FROM item WHERE i_id IN (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+1630353805058	3	35	"SELECT s_i_id, s_quantity, s_data, s_dist_01, s_dist_02, s_dist_03, s_dist_04, s_dist_05, s_dist_06, s_dist_07, s_dist_08, s_dist_09, s_dist_10 FROM stock WHERE (s_w_id, s_i_id) IN ((?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?)) FOR UPDATE"
+1630353805058	3	36	"INSERT into order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_dist_info) VALUES (?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?)"
+1630353805059	3	37	"SELECT i_price, i_name, i_data, i_id FROM item WHERE i_id IN (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+1630353805060	3	38	"SELECT s_i_id, s_quantity, s_data, s_dist_01, s_dist_02, s_dist_03, s_dist_04, s_dist_05, s_dist_06, s_dist_07, s_dist_08, s_dist_09, s_dist_10 FROM stock WHERE (s_w_id, s_i_id) IN ((?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?)) FOR UPDATE"
+1630353805060	3	39	"INSERT into order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_dist_info) VALUES (?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?)"
+1630353805061	3	40	"UPDATE warehouse SET w_ytd = w_ytd + ? WHERE w_id = ?"
+1630353805062	3	41	"SELECT w_street_1, w_street_2, w_city, w_state, w_zip, w_name FROM warehouse WHERE w_id = ?"
+1630353805070	3	42	"UPDATE district SET d_ytd = d_ytd + ? WHERE d_w_id = ? AND d_id = ?"
+1630353805071	3	43	"SELECT d_street_1, d_street_2, d_city, d_state, d_zip, d_name FROM district WHERE d_w_id = ? AND d_id = ?"
+1630353805176	3	44	"SELECT c_id FROM customer WHERE c_w_id = ? AND c_d_id = ? AND c_last = ? ORDER BY c_first"
+1630353805177	3	45	"SELECT c_first, c_middle, c_last, c_street_1, c_street_2, c_city, c_state, c_zip, c_phone,\nc_credit, c_credit_lim, c_discount, c_balance, c_since FROM customer WHERE c_w_id = ? AND c_d_id = ? \nAND c_id = ? FOR UPDATE"
+1630353805177	3	46	"SELECT c_data FROM customer WHERE c_w_id = ? AND c_d_id = ? AND c_id = ?"
+1630353805208	3	47	"UPDATE customer SET c_balance = c_balance - ?, c_ytd_payment = c_ytd_payment + ?, \nc_payment_cnt = c_payment_cnt + 1, c_data = ? WHERE c_w_id = ? AND c_d_id = ? AND c_id = ?"
+1630353805220	3	48	"UPDATE customer SET c_balance = c_balance - ?, c_ytd_payment = c_ytd_payment + ?, \nc_payment_cnt = c_payment_cnt + 1 WHERE c_w_id = ? AND c_d_id = ? AND c_id = ?"
+1630353805220	3	49	"INSERT INTO history (h_c_d_id, h_c_w_id, h_c_id, h_d_id, h_w_id, h_date, h_amount, h_data)\nVALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+1630353805223	3	50	"SELECT count(c_id) namecnt FROM customer WHERE c_w_id = ? AND c_d_id = ? AND c_last = ?"
+1630353805224	3	51	"SELECT c_balance, c_first, c_middle, c_id FROM customer WHERE c_w_id = ? AND c_d_id = ? AND c_last = ? ORDER BY c_first"
+1630353805224	3	52	"SELECT c_balance, c_first, c_middle, c_last FROM customer WHERE c_w_id = ? AND c_d_id = ? AND c_id = ?"
+1630353805225	3	53	"SELECT o_id, o_carrier_id, o_entry_d FROM orders WHERE o_w_id = ? AND o_d_id = ? AND o_c_id = ? ORDER BY o_id DESC LIMIT 1"
+1630353805226	3	54	"SELECT ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_delivery_d FROM order_line WHERE ol_w_id = ? AND ol_d_id = ? AND ol_o_id = ?"
+1630353805241	3	55	"SELECT no_o_id FROM new_order WHERE no_w_id = ? AND no_d_id = ? ORDER BY no_o_id ASC LIMIT 1 FOR UPDATE"
+1630353805242	3	56	"DELETE FROM new_order WHERE (no_w_id, no_d_id, no_o_id) IN (\n\t(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?)\n)"
+1630353805243	3	57	"UPDATE orders SET o_carrier_id = ? WHERE (o_w_id, o_d_id, o_id) IN (\n\t(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?)\n)"
+1630353805244	3	58	"SELECT o_d_id, o_c_id FROM orders WHERE (o_w_id, o_d_id, o_id) IN (\n\t(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?)\n)"
+1630353805249	3	59	"UPDATE order_line SET ol_delivery_d = ? WHERE (ol_w_id, ol_d_id, ol_o_id) IN (\n\t(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?)\n)"
+1630353805250	3	60	"SELECT ol_d_id, SUM(ol_amount) FROM order_line WHERE (ol_w_id, ol_d_id, ol_o_id) IN (\n\t(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?)\n) GROUP BY ol_d_id"
+1630353805261	3	61	"UPDATE customer SET c_balance = c_balance + ?, c_delivery_cnt = c_delivery_cnt + 1 WHERE c_w_id = ? AND c_d_id = ? AND c_id = ?"
+1630353805266	3	62	"SELECT d_next_o_id FROM district WHERE d_w_id = ? AND d_id = ?"
+1630353805303	3	63	"SELECT /*+ TIDB_INLJ(order_line,stock) */ COUNT(DISTINCT (s_i_id)) stock_count FROM order_line, stock \nWHERE ol_w_id = ? AND ol_d_id = ? AND ol_o_id < ? AND ol_o_id >= ? - 20 AND s_w_id = ? AND s_i_id = ol_i_id AND s_quantity < ?"
+1630353805303	2	"START TRANSACTION"
+1630353805326	4	1	[iii	28	1	2645
+1630353805362	4	2	[ii	1	28
+1630353805411	4	3	[iii	3001	1	28
+1630353805412	4	4	[iiiisii	3001	1	28	2645	"2021-08-31 04:03:25"	9	1
+1630353805428	4	5	[iii	3001	1	28
+1630353805451	4	19	[iiiiiiiii	47553	48830	6937	50114	86886	16754	45749	63154	58281
+1630353805466	4	20	[iiiiiiiiiiiiiiiiii	28	47553	28	48830	28	6937	28	50114	28	86886	28	16754	28	45749	28	63154	28	58281
+1630353805513	4	6	[iiiii	22	7	0	47553	28
+1630353805513	4	6	[iiiii	33	5	0	48830	28
+1630353805514	4	6	[iiiii	38	1	0	6937	28
+1630353805516	4	6	[iiiii	81	10	0	50114	28
+1630353805516	4	6	[iiiii	26	1	0	86886	28
+1630353805517	4	6	[iiiii	85	7	0	16754	28
+1630353805517	4	6	[iiiii	24	6	0	45749	28
+1630353805518	4	6	[iiiii	88	10	0	63154	28
+1630353805519	4	6	[iiiii	76	8	0	58281	28
+1630353805519	4	21	[iiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiids	3001	1	28	1	47553	28	7	377.31926176560006	"UUJIPSFJUZFHYXJGTHEHWDMA"	3001	1	28	2	48830	28	5	222.824422359	"OAGAAEHKDIXYAESPAFRPRNBG"	3001	1	28	3	6937	28	1	56.4645903426	"RUNYYWZNXDOSJXMODYBMSFPI"	3001	1	28	4	50114	28	10	475.43282265600004	"BAOQIKAVPTGICNVSUGLUUAOU"	3001	1	28	5	86886	28	1	12.5384298732	"ETMEKOVAXTOPXCNDXETZJBEO"	3001	1	28	6	16754	28	7	123.5375532468	"BQNCEVTMMJJMOKAPRNDZVHBY"	3001	1	28	7	45749	28	6	166.9152441924	"KDXOTOOUYDUYUYQDNHNEDPWX"	3001	1	28	8	63154	28	10	21.105662688	"BVYGPARWZMWXYCJZTECQJOAC"	3001	1	28	9	58281	28	8	343.9112193792	"PSGGBJOSBYCTZLAWWUFWTWAY"
+1630353805572	2	"COMMIT"
+1630353805664	2	"START TRANSACTION"
+1630353805665	4	42	[dii	462.31	363	3
+1630353805749	4	43	[ii	363	3
+1630353805749	4	40	[di	462.31	363
+1630353805818	4	41	[i	363
+1630353805819	4	45	[iii	363	3	2385
+1630353805889	4	48	[ddiii	462.31	462.31	363	3	2385
+1630353805889	4	49	[iiiiisds	3	363	2385	3	363	"2021-08-31 04:03:25"	462.31	" Gzi7wKXLr    iBe0in0ga7"
+1630353805931	2	"COMMIT"
+1630353806021	2	"START TRANSACTION"
+1630353806023	4	1	[iii	267	3	1583
+1630353806062	4	2	[ii	3	267
+1630353806163	4	3	[iii	3001	3	267
+1630353806163	4	4	[iiiisii	3001	3	267	1583	"2021-08-31 04:03:26"	13	1
+1630353806208	4	5	[iii	3001	3	267
+1630353806262	4	31	[iiiiiiiiiiiii	79216	2495	50018	71040	19842	99177	5265	56246	66434	33722	99570	37290	90818
+1630353806290	4	32	[iiiiiiiiiiiiiiiiiiiiiiiiii	267	79216	267	2495	267	50018	267	71040	267	19842	267	99177	267	5265	267	56246	267	66434	267	33722	267	99570	267	37290	267	90818
+1630353806364	4	6	[iiiii	14	9	0	79216	267
+1630353806364	4	6	[iiiii	20	6	0	2495	267
+1630353806365	4	6	[iiiii	17	6	0	50018	267
+1630353806366	4	6	[iiiii	73	1	0	71040	267
+1630353806367	4	6	[iiiii	82	5	0	19842	267
+1630353806367	4	6	[iiiii	21	10	0	99177	267
+1630353806368	4	6	[iiiii	33	3	0	5265	267
+1630353806369	4	6	[iiiii	42	4	0	56246	267
+1630353806369	4	6	[iiiii	14	2	0	66434	267
+1630353806370	4	6	[iiiii	85	2	0	33722	267
+1630353806371	4	6	[iiiii	28	8	0	99570	267
+1630353806373	4	6	[iiiii	63	7	0	37290	267
+1630353806373	4	6	[iiiii	23	3	0	90818	267
+1630353806374	4	33	[iiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiids	3001	3	267	1	79216	267	9	48.9589754976	"XUJSEXNRCYVMNOWCOFSDRKMX"	3001	3	267	2	2495	267	6	12.492809683199999	"CQGIINJDDKEPPPGLVZUSWUXJ"	3001	3	267	3	50018	267	6	79.4009405952	"ALNKVWWANSNELLQLBSBEPWRI"	3001	3	267	4	71040	267	1	22.722429206399998	"GCIHSGNWOUPQFFUCXPRRUNHH"	3001	3	267	5	19842	267	5	301.08658910400004	"YWUCEIDACMHDDRVNABMPOIDV"	3001	3	267	6	99177	267	10	499.794685152	"BOTZJHEOYWZALKSQXFZNUVDJ"	3001	3	267	7	5265	267	3	79.07997908160002	"FDERIDAHKZQSCZOHXSRIDBFY"	3001	3	267	8	56246	267	4	4.8061929216	"NRNSFOMSDPBTSSCGTLSQYTCD"	3001	3	267	9	66434	267	2	155.19723649920002	"LVAGCOWOCHEQVOILQOHDVZWN"	3001	3	267	10	33722	267	2	149.7326609856	"MOKGESHOWXGBBKELAXHXENZM"	3001	3	267	11	99570	267	8	614.9293409280001	"MTGJYXGBBEMMEAZEJQYFCNNO"	3001	3	267	12	37290	267	7	97.07028340800002	"LWSCCTTUIOWMLZUCNQALQMNR"	3001	3	267	13	90818	267	3	224.796506256	"MWEHTXRXWZYLZASSEIHNNWUQ"
+1630353806392	2	"COMMIT"

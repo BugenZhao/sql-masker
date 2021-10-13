@@ -17,7 +17,7 @@ func (opt *SQLOption) Run() error {
 		return err
 	}
 
-	masker := mask.NewWorker(db, mask.DebugMask)
+	masker := mask.NewWorker(db, mask.DebugMaskColor)
 	maskSQLs := make(chan string)
 	go ReadSQLs(opt.File, maskSQLs)
 	for sql := range maskSQLs {

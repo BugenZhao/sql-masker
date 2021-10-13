@@ -32,6 +32,7 @@ func NewReplaceVisitor(mode ReplaceMode) *ReplaceVisitor {
 		mode:        mode,
 		next:        1001,
 		OriginExprs: make(ExprMap),
+		Offsets:     make(ExprOffsetMap),
 	}
 }
 
@@ -66,6 +67,10 @@ func (v *ReplaceVisitor) Leave(in ast.Node) (node ast.Node, ok bool) {
 			n := v.nextMarker()
 			replacedExpr := ast.NewValueExpr(n.IntValue(), "", "")
 			v.Offsets[n] = expr.Offset
+			return replacedExpr, true
+		}
+		if _, ok := in.(*driver.ValueExpr); ok {
+			replacedExpr := ast.NewValueExpr(1, "", "")
 			return replacedExpr, true
 		}
 	}
@@ -108,15 +113,15 @@ func (v *RestoreVisitor) Enter(in ast.Node) (_ ast.Node, skipChilren bool) {
 
 func (v *RestoreVisitor) Leave(in ast.Node) (_ ast.Node, ok bool) {
 	if expr, ok := in.(*driver.ValueExpr); ok {
-		i := ReplaceMarker(expr.Datum.GetInt64())
-		originExpr, ok := v.originExprs[i]
+		m := ReplaceMarker(expr.Datum.GetInt64())
+		originExpr, ok := v.originExprs[m]
 		if !ok {
 			v.appendError(fmt.Errorf("no replace record found for `%v`", expr.Datum))
 			return in, false
 		}
-		inferredType, ok := v.inferredTypes[i]
+		inferredType, ok := v.inferredTypes[m]
 		if !ok {
-			guessI := i*2 + replaceMarkerStep // hack for handle `a + b`
+			guessI := m*2 + replaceMarkerStep // hack for handle `a + b`
 			guessedType, ok := v.inferredTypes[guessI]
 			if ok {
 				v.appendError(fmt.Errorf("type for `%v` is guessed", originExpr.Datum))
