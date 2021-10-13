@@ -32,8 +32,10 @@
         "-d",
         "example/tpcc/ddl",
         "event",
-        "-f",
-        "example/tpcc/events.tsv"
+        "-i",
+        "example/tpcc/events",
+        "-o",
+        "out/tpcc"
       ]
     }
   ]

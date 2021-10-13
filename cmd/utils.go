@@ -6,9 +6,16 @@ import (
 	"os"
 	"strings"
 
+	"github.com/BugenZhao/sql-masker/mask"
 	"github.com/BugenZhao/sql-masker/tidb"
 	"github.com/pingcap/parser/ast"
 )
+
+type TaskResult struct {
+	file  string
+	stats *mask.Stats
+	err   error
+}
 
 func ReadSQLs(out chan<- string, sqlPaths ...string) {
 	defer close(out)

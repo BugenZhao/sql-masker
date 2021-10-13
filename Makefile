@@ -32,7 +32,7 @@ sql-%: cli
 	bin/sql-masker -d example/$*/ddl -p example/$*/prepare sql -f example/$*/mask.sql
 
 event-%: cli
-	bin/sql-masker -d example/$*/ddl -p example/$*/prepare event -f example/$*/events.tsv
+	bin/sql-masker -d example/$*/ddl -p example/$*/prepare event -i example/$*/events -o out/$*
 
 test:
 	$(GOTEST) ./...

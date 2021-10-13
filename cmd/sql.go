@@ -12,7 +12,7 @@ type SQLOption struct {
 }
 
 func (opt *SQLOption) Run() error {
-	db, err := NewDefinedTiDBContext()
+	db, err := NewPreparedTiDBContext()
 	if err != nil {
 		return err
 	}

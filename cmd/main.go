@@ -67,7 +67,7 @@ func prepareDB() error {
 	return nil
 }
 
-func NewDefinedTiDBContext() (*tidb.Context, error) {
+func NewPreparedTiDBContext() (*tidb.Context, error) {
 	globalInstanceOnce.Do(func() {
 		err := prepareDB()
 		if err != nil {
