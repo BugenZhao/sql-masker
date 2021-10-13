@@ -26,7 +26,7 @@ func (opt *EventOption) Run() error {
 	if err != nil {
 		return err
 	}
-	masker := mask.NewWorker(db, mask.DebugMask)
+	masker := mask.NewEventWorker(db, mask.DebugMask)
 
 	for in.Scan() {
 		ev := event.MySQLEvent{}
@@ -37,7 +37,7 @@ func (opt *EventOption) Run() error {
 		}
 
 		fmt.Printf("\n-> %s\n", text)
-		ev, err = masker.MaskEvent(ev)
+		ev, err = masker.MaskOne(ev)
 		if err != nil {
 			color.Red("!> %v\n", err)
 			continue
@@ -52,5 +52,6 @@ func (opt *EventOption) Run() error {
 		fmt.Printf("=> %s\n", maskedText)
 	}
 
+	masker.Stats.Summary()
 	return nil
 }

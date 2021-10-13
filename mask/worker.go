@@ -12,37 +12,40 @@ import (
 	"github.com/pingcap/parser/mysql"
 	ptypes "github.com/pingcap/parser/types"
 	"github.com/pingcap/tidb/kv"
-	"github.com/pingcap/tidb/sessionctx/stmtctx"
-	"github.com/pingcap/tidb/types"
-	"github.com/zyguan/mysql-replay/event"
 )
 
-type Prepared struct {
-	sql           string
-	typeMap       TypeMap
-	sortedMarkers []ReplaceMarker
+type Stats struct {
+	All         uint64
+	Problematic uint64
+	Success     uint64
 }
 
-type PreparedMap = map[uint64]Prepared
+func (s Stats) Summary() {
+	fmt.Printf(`
 
-type Worker struct {
-	db            *tidb.Instance
-	maskFunc      MaskFunc
-	preparedStmts PreparedMap
-	All           uint64
-	Problematic   uint64
-	Success       uint64
+====Summary====
+Success      %d
+Problematic  %d
+Failed       %d
+Total        %d
+	`,
+		s.Success, s.Problematic, s.All-s.Success-s.Problematic, s.All)
 }
 
-func NewWorker(db *tidb.Instance, maskFunc MaskFunc) *Worker {
-	return &Worker{
-		db:            db,
-		maskFunc:      maskFunc,
-		preparedStmts: make(PreparedMap),
+type worker struct {
+	Stats    Stats
+	db       *tidb.Instance
+	maskFunc MaskFunc
+}
+
+func newWorker(db *tidb.Instance, maskFunc MaskFunc) *worker {
+	return &worker{
+		db:       db,
+		maskFunc: maskFunc,
 	}
 }
 
-func (w *Worker) replaceValue(sql string) (ast.StmtNode, ExprMap, error) {
+func (w *worker) replaceValue(sql string) (ast.StmtNode, ExprMap, error) {
 	node, err := w.db.ParseOne(sql)
 	if err != nil {
 		return nil, nil, err
@@ -53,7 +56,7 @@ func (w *Worker) replaceValue(sql string) (ast.StmtNode, ExprMap, error) {
 	return newNode.(ast.StmtNode), v.OriginExprs, nil
 }
 
-func (w *Worker) replaceParamMarker(sql string) (ast.StmtNode, []ReplaceMarker, error) {
+func (w *worker) replaceParamMarker(sql string) (ast.StmtNode, []ReplaceMarker, error) {
 	node, err := w.db.ParseOne(sql)
 	if err != nil {
 		return nil, nil, err
@@ -70,7 +73,7 @@ func (w *Worker) replaceParamMarker(sql string) (ast.StmtNode, []ReplaceMarker, 
 	return newNode.(ast.StmtNode), markers, nil
 }
 
-func (w *Worker) restore(stmtNode ast.StmtNode, originExprs ExprMap, inferredTypes TypeMap) (string, error) {
+func (w *worker) restore(stmtNode ast.StmtNode, originExprs ExprMap, inferredTypes TypeMap) (string, error) {
 	v := NewRestoreVisitor(originExprs, inferredTypes, w.maskFunc)
 	newNode, ok := stmtNode.Accept(v)
 	if !ok {
@@ -89,7 +92,7 @@ func (w *Worker) restore(stmtNode ast.StmtNode, originExprs ExprMap, inferredTyp
 	return newSQL, v.err
 }
 
-func (w *Worker) infer(stmtNode ast.StmtNode) (TypeMap, error) {
+func (w *worker) infer(stmtNode ast.StmtNode) (TypeMap, error) {
 	execStmt, err := w.db.CompileStmtNode(stmtNode)
 	if err != nil {
 		return nil, err
@@ -127,9 +130,7 @@ func (w *Worker) infer(stmtNode ast.StmtNode) (TypeMap, error) {
 	return inferredTypes, nil
 }
 
-func (w *Worker) MaskOneQuery(sql string) (string, error) {
-	w.All += 1
-
+func (w *worker) maskOneQuery(sql string) (string, error) {
 	replacedStmtNode, originExprs, err := w.replaceValue(sql)
 	if err != nil {
 		return sql, err
@@ -145,102 +146,9 @@ func (w *Worker) MaskOneQuery(sql string) (string, error) {
 		if newSQL == "" {
 			return sql, err
 		} else {
-			w.Problematic += 1
 			return newSQL, err
 		}
 	}
 
-	w.Success += 1
 	return newSQL, nil
-}
-
-func (w *Worker) PrepareOne(stmtID uint64, sql string) error {
-	replacedStmtNode, sortedMarkers, err := w.replaceParamMarker(sql)
-	if err != nil {
-		return err
-	}
-	inferredTypes, err := w.infer(replacedStmtNode)
-	if err != nil {
-		return err
-	}
-
-	w.preparedStmts[stmtID] = Prepared{
-		sql, inferredTypes, sortedMarkers,
-	}
-	return nil
-}
-
-func (w *Worker) MaskOneExecute(stmtID uint64, params []interface{}) ([]interface{}, error) {
-	p, ok := w.preparedStmts[stmtID]
-	if !ok {
-		return params, fmt.Errorf("no prepared query found for stmt id `%d`", stmtID)
-	}
-
-	if len(p.sortedMarkers) != len(params) {
-		return params, fmt.Errorf("mismatched length of inferred markers and params for stmt `%s`", p.sql)
-	}
-
-	sc := &stmtctx.StatementContext{}
-	maskedParams := []interface{}{}
-
-	for i, param := range params {
-		originDatum := types.NewDatum(param)
-
-		marker := p.sortedMarkers[i]
-		possibleMarkers := []ReplaceMarker{
-			marker,
-			marker - 1,
-			marker + 1,
-		}
-
-		var tp *types.FieldType
-		for _, marker := range possibleMarkers {
-			tp, ok = p.typeMap[marker]
-			if ok {
-				break
-			}
-		}
-		if tp == nil {
-			return params, fmt.Errorf("type for `%v` not inferred", originDatum)
-		}
-
-		maskedDatum, _, err := ConvertAndMask(sc, originDatum, tp, w.maskFunc)
-		if err != nil {
-			return params, err
-		}
-		maskedParams = append(maskedParams, maskedDatum.GetValue())
-	}
-
-	return maskedParams, nil
-}
-
-func (w *Worker) MaskEvent(ev event.MySQLEvent) (event.MySQLEvent, error) {
-	switch ev.Type {
-	case event.EventHandshake:
-		w.preparedStmts = make(PreparedMap)
-
-	case event.EventQuery:
-		maskedQuery, err := w.MaskOneQuery(ev.Query)
-		if err != nil {
-			return ev, err
-		}
-		ev.Query = maskedQuery
-
-	case event.EventStmtPrepare:
-		err := w.PrepareOne(ev.StmtID, ev.Query)
-		if err != nil {
-			return ev, err
-		}
-
-	case event.EventStmtExecute:
-		maskedParams, err := w.MaskOneExecute(ev.StmtID, ev.Params)
-		if err != nil {
-			return ev, err
-		}
-		ev.Params = maskedParams
-
-	default:
-	}
-
-	return ev, nil
 }

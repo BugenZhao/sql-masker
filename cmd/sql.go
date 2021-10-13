@@ -17,12 +17,12 @@ func (opt *SQLOption) Run() error {
 		return err
 	}
 
-	masker := mask.NewWorker(db, mask.DebugMaskColor)
+	masker := mask.NewSQLWorker(db, mask.DebugMaskColor)
 	maskSQLs := make(chan string)
 	go ReadSQLs(opt.File, maskSQLs)
 	for sql := range maskSQLs {
 		fmt.Printf("\n-> %s\n", sql)
-		newSQL, err := masker.MaskOneQuery(sql)
+		newSQL, err := masker.MaskOne(sql)
 		if err != nil {
 			if newSQL == "" || newSQL == sql {
 				color.Red("!> %v\n", err)
@@ -34,14 +34,6 @@ func (opt *SQLOption) Run() error {
 		fmt.Printf("=> %s\n", newSQL)
 	}
 
-	fmt.Printf(`
-
-====Summary====
-Success      %d
-Problematic  %d
-Failed       %d
-Total        %d
-`,
-		masker.Success, masker.Problematic, masker.All-masker.Success-masker.Problematic, masker.All)
+	masker.Stats.Summary()
 	return nil
 }
