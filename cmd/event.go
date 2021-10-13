@@ -22,7 +22,7 @@ func (opt *EventOption) Run() error {
 	defer file.Close()
 	in := bufio.NewScanner(file)
 
-	db, err := NewDefinedInstance()
+	db, err := NewDefinedTiDBContext()
 	if err != nil {
 		return err
 	}

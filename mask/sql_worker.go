@@ -6,7 +6,7 @@ type SQLWorker struct {
 	worker
 }
 
-func NewSQLWorker(db *tidb.Instance, maskFunc MaskFunc) *SQLWorker {
+func NewSQLWorker(db *tidb.Context, maskFunc MaskFunc) *SQLWorker {
 	return &SQLWorker{
 		worker: *newWorker(db, maskFunc),
 	}

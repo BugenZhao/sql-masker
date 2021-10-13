@@ -34,11 +34,11 @@ Total        %d
 
 type worker struct {
 	Stats    Stats
-	db       *tidb.Instance
+	db       *tidb.Context
 	maskFunc MaskFunc
 }
 
-func newWorker(db *tidb.Instance, maskFunc MaskFunc) *worker {
+func newWorker(db *tidb.Context, maskFunc MaskFunc) *worker {
 	return &worker{
 		db:       db,
 		maskFunc: maskFunc,

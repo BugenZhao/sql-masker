@@ -30,7 +30,7 @@ func (m ReplaceMarker) IntValue() int64 {
 func NewReplaceVisitor(mode ReplaceMode) *ReplaceVisitor {
 	return &ReplaceVisitor{
 		mode:        mode,
-		next:        1001,
+		next:        replaceMarkerStep + 1,
 		OriginExprs: make(ExprMap),
 		Offsets:     make(ExprOffsetMap),
 	}

@@ -22,7 +22,7 @@ type EventWorker struct {
 	preparedStmts PreparedMap
 }
 
-func NewEventWorker(db *tidb.Instance, maskFunc MaskFunc) *EventWorker {
+func NewEventWorker(db *tidb.Context, maskFunc MaskFunc) *EventWorker {
 	return &EventWorker{
 		worker:        *newWorker(db, maskFunc),
 		preparedStmts: make(PreparedMap),
@@ -66,8 +66,8 @@ func (w *EventWorker) MaskOneExecute(stmtID uint64, params []interface{}) ([]int
 		// HACK: handle `? +/-/*/div {constant}`
 		possibleMarkers := []ReplaceMarker{
 			marker,
-			marker - 1,
 			marker + 1,
+			marker - 1,
 		}
 
 		var tp *types.FieldType
@@ -122,6 +122,9 @@ func (w *EventWorker) MaskOne(ev event.MySQLEvent) (event.MySQLEvent, error) {
 			return ev, err
 		}
 		ev.Params = maskedParams
+
+	case event.EventStmtClose:
+		delete(w.preparedStmts, ev.StmtID)
 
 	default:
 	}

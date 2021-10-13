@@ -33,5 +33,3 @@ UPDATE customer SET c_balance = c_balance + 42 , c_delivery_cnt = c_delivery_cnt
 SELECT d_next_o_id FROM district WHERE d_id = 42 AND d_w_id = 42;
 SELECT DISTINCT ol_i_id FROM order_line WHERE ol_w_id = 42 AND ol_d_id = 42 AND ol_o_id < 42 AND ol_o_id >= (42 - 20);
 SELECT count(*) FROM stock WHERE s_w_id = 42 AND s_i_id = 42 AND s_quantity < 42;
-
-EXECUTE stmt1 USING @num, @num, @num;
