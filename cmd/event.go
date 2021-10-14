@@ -10,12 +10,13 @@ import (
 	"github.com/BugenZhao/sql-masker/mask"
 	"github.com/fatih/color"
 	"github.com/zyguan/mysql-replay/event"
+	"go.uber.org/zap"
 )
 
 type EventOption struct {
 	InputDir  string `opts:""`
 	OutputDir string `opts:""`
-	Verbose   bool   `opt:""`
+	Verbose   bool   `opts:""`
 }
 
 func (opt *EventOption) outPath(from string) string {
@@ -101,9 +102,10 @@ func (opt *EventOption) Run() error {
 			defer wg.Done()
 			stats, err := opt.RunFile(path)
 			resultChan <- TaskResult{
-				opt.outPath(path),
-				stats,
-				err,
+				from:  path,
+				to:    opt.outPath(path),
+				stats: stats,
+				err:   err,
 			}
 		}(path)
 	}
@@ -113,14 +115,18 @@ func (opt *EventOption) Run() error {
 		close(resultChan)
 	}()
 
+	i := 1
+	all := len(paths)
 	for result := range resultChan {
-		fmt.Printf("\n%s:", result.file)
+		progress := fmt.Sprintf("%d/%d", i, all)
 		if result.err != nil {
-			color.Red("\n%v", result.err)
+			zap.S().Warnw("mask error", "progress", progress, "file", result.from, "error", result.err)
 		} else {
-			result.stats.Summary()
+			zap.S().Infow("mask done", "progress", progress, "from", result.from, "to", result.to, "stats", result.stats)
 		}
+		i += 1
 	}
 
+	zap.S().Infow("all done")
 	return nil
 }

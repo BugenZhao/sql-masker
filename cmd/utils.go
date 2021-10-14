@@ -12,7 +12,8 @@ import (
 )
 
 type TaskResult struct {
-	file  string
+	from  string
+	to    string
 	stats *mask.Stats
 	err   error
 }

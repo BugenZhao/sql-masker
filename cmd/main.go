@@ -7,6 +7,8 @@ import (
 
 	"github.com/BugenZhao/sql-masker/tidb"
 	"github.com/jpillora/opts"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 type Option struct {
@@ -21,11 +23,21 @@ type Option struct {
 var option *Option
 
 func main() {
+	initLogger()
 	option = &Option{
 		DB:                   "test",
 		FilterOutConstraints: true,
 	}
 	opts.Parse(option).RunFatal()
+}
+
+func initLogger() {
+	config := zap.NewProductionConfig()
+	config.Encoding = "console"
+	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+	logger, _ := config.Build()
+	defer logger.Sync()
+	zap.ReplaceGlobals(logger)
 }
 
 var (

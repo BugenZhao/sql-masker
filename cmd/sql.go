@@ -34,6 +34,6 @@ func (opt *SQLOption) Run() error {
 		fmt.Printf("=> %s\n", newSQL)
 	}
 
-	masker.Stats.Summary()
+	masker.Stats.PrintSummary()
 	return nil
 }

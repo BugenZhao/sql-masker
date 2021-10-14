@@ -20,7 +20,7 @@ type Stats struct {
 	Success     uint64
 }
 
-func (s Stats) Summary() {
+func (s Stats) PrintSummary() {
 	fmt.Printf(`
 
 ====Summary====
