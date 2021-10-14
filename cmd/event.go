@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/BugenZhao/sql-masker/mask"
 	maskfuncs "github.com/BugenZhao/sql-masker/mask/funcs"
-	"github.com/fatih/color"
 	"github.com/zyguan/mysql-replay/event"
 	"go.uber.org/zap"
 )
@@ -17,7 +17,6 @@ import (
 type EventOption struct {
 	InputDir  string `opts:""`
 	OutputDir string `opts:""`
-	Verbose   bool   `opts:""`
 }
 
 func (opt *EventOption) outPath(from string) string {
@@ -61,19 +60,14 @@ func (opt *EventOption) RunFile(path string) (*mask.Stats, error) {
 
 		mev, err := masker.MaskOne(ev)
 		if err != nil {
-			if opt.Verbose {
-				fmt.Printf("\n-> %s\n", text)
-				color.Red("!> %v\n", err)
-			}
-			continue
+			zap.S().Warnw("failed to mask event", "original", strings.ReplaceAll(text, "\t", " "), "error", err)
+			mev = ev
 		}
 
 		maskedLine := []byte{}
 		maskedLine, err = event.AppendEvent(maskedLine, mev)
 		if err != nil {
-			if opt.Verbose {
-				color.Red("!> %v\n", err)
-			}
+			return nil, err
 		}
 
 		maskedLine = append(maskedLine, '\n')
@@ -125,7 +119,7 @@ func (opt *EventOption) Run() error {
 		if result.err != nil {
 			zap.S().Warnw("mask error", "progress", progress, "file", result.from, "error", result.err)
 		} else {
-			zap.S().Infow("mask done", "progress", progress, "from", result.from, "to", result.to, "stats", result.stats)
+			zap.S().Infow("mask done", "progress", progress, "from", result.from, "to", result.to, "stats", result.stats.String())
 		}
 		i += 1
 	}

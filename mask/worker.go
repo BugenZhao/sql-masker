@@ -20,6 +20,14 @@ type Stats struct {
 	Success     uint64
 }
 
+func (s Stats) String() string {
+	return fmt.Sprintf("all %d, success %d, problematic %d, failed %d", s.All, s.Success, s.Problematic, s.Failed())
+}
+
+func (s Stats) Failed() uint64 {
+	return s.All - s.Problematic - s.Success
+}
+
 func (s Stats) PrintSummary() {
 	fmt.Printf(`
 
@@ -29,7 +37,7 @@ Problematic  %d
 Failed       %d
 Total        %d
 	`,
-		s.Success, s.Problematic, s.All-s.Success-s.Problematic, s.All)
+		s.Success, s.Problematic, s.Failed(), s.All)
 }
 
 type worker struct {

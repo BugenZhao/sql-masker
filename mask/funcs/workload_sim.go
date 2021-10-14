@@ -29,7 +29,7 @@ TypeDate        byte = 10
 */
 
 var (
-	defaultKey []byte = nil
+	defaultKey []byte = []byte("bugen")
 )
 
 func newHasher(size int) hash.Hash {
@@ -188,7 +188,7 @@ func WorkloadSimMask(datum types.Datum, tp *types.FieldType) (types.Datum, *type
 		return datum, tp, nil
 
 	default:
-		return types.NewDatum("unimplemented"), types.NewFieldType(mysql.TypeString), nil
+		return datum, tp, fmt.Errorf("unimplemented for type `%v`", tp)
 	}
 }
 

@@ -25,9 +25,6 @@ var option *Option
 func main() {
 	initLogger()
 	option = &Option{
-		EventOption: EventOption{
-			Verbose: true,
-		},
 		DB:                   "test",
 		FilterOutConstraints: true,
 	}
