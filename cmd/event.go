@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/BugenZhao/sql-masker/mask"
+	maskfuncs "github.com/BugenZhao/sql-masker/mask/funcs"
 	"github.com/fatih/color"
 	"github.com/zyguan/mysql-replay/event"
 	"go.uber.org/zap"
@@ -35,7 +36,7 @@ func (opt *EventOption) RunFile(path string) (*mask.Stats, error) {
 	if err != nil {
 		return nil, err
 	}
-	masker := mask.NewEventWorker(db, mask.DebugMask)
+	masker := mask.NewEventWorker(db, maskfuncs.DebugMask)
 
 	outPath := opt.outPath(file.Name())
 	if _, err := os.Stat(outPath); err == nil {

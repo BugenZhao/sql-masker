@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/BugenZhao/sql-masker/mask"
+	maskfuncs "github.com/BugenZhao/sql-masker/mask/funcs"
 	"github.com/fatih/color"
 )
 
@@ -17,7 +18,7 @@ func (opt *SQLOption) Run() error {
 		return err
 	}
 
-	masker := mask.NewSQLWorker(db, mask.DebugMaskColor)
+	masker := mask.NewSQLWorker(db, maskfuncs.DebugMaskColor)
 	maskSQLs := make(chan string)
 	go ReadSQLs(maskSQLs, opt.File)
 	for sql := range maskSQLs {
