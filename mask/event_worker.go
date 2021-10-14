@@ -154,14 +154,20 @@ func datumToEventParam(datum types.Datum) interface{} {
 		default:
 			return d.GetInterface()
 	*/
+
 	switch value := datum.GetValue().(type) {
+	case int64, uint64, string, float32, float64, []byte:
+		return value
+
 	case *types.MyDecimal:
 		f, _ := value.ToFloat64()
 		return f
+
 	case *types.Duration:
 		return value.String()
 	case *types.Time:
 		return value.String()
+
 	default:
 		return value
 	}

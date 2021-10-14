@@ -3,7 +3,9 @@ package funcs
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
+	"hash"
 	"math"
 	"strconv"
 	"strings"
@@ -12,28 +14,6 @@ import (
 	"github.com/pingcap/tidb/types"
 	"golang.org/x/crypto/blake2b"
 )
-
-/*
-KindNull          byte = 0
-KindInt64         byte = 1
-KindUint64        byte = 2
-KindFloat32       byte = 3
-KindFloat64       byte = 4
-KindString        byte = 5
-KindBytes         byte = 6
-KindBinaryLiteral byte = 7 // Used for BIT / HEX literals.
-KindMysqlDecimal  byte = 8
-KindMysqlDuration byte = 9
-KindMysqlEnum     byte = 10
-KindMysqlBit      byte = 11 // Used for BIT table column values.
-KindMysqlSet      byte = 12
-KindMysqlTime     byte = 13
-KindInterface     byte = 14
-KindMinNotNull    byte = 15
-KindMaxValue      byte = 16
-KindRaw           byte = 17
-KindMysqlJSON     byte = 18
-*/
 
 /*
 TypeTiny        byte = 1
@@ -47,6 +27,18 @@ TypeLonglong    byte = 8
 TypeInt24       byte = 9
 TypeDate        byte = 10
 */
+
+var (
+	defaultKey []byte = nil
+)
+
+func newHasher(size int) hash.Hash {
+	digest, err := blake2b.New(size, defaultKey)
+	if err != nil {
+		panic(err)
+	}
+	return digest
+}
 
 func resizeInt64(i int64, tp *types.FieldType) int64 {
 	switch tp.Tp {
@@ -83,16 +75,20 @@ func resizeUint64(i uint64, tp *types.FieldType) uint64 {
 }
 
 func hashBytes(data interface{}, size int) []byte {
-	buf := new(bytes.Buffer)
-	binary.Write(buf, binary.LittleEndian, data)
-	digest, err := blake2b.New(8, nil)
-	if err != nil {
-		panic(err)
+	var bs []byte
+	switch data := data.(type) {
+	case []byte:
+		bs = data
+	default:
+		buf := new(bytes.Buffer)
+		binary.Write(buf, binary.LittleEndian, data)
+		bs = buf.Bytes()
 	}
-	digest.Write(buf.Bytes())
 
-	sum := []byte{}
-	sum = digest.Sum(sum)
+	digest := newHasher(size)
+	digest.Write(bs)
+
+	sum := digest.Sum([]byte{})
 	return sum
 }
 
@@ -143,6 +139,16 @@ func hashDecimal(d *types.MyDecimal) (*types.MyDecimal, error) {
 	return d, nil
 }
 
+func hashString(s string) string {
+	bytes := []byte(s)
+	size := len(bytes)
+
+	sum := hashBytes([]byte(s), size/2)
+	hex := hex.EncodeToString(sum)
+	hex = hex + strings.Repeat("*", size-len(hex))
+	return hex
+}
+
 func WorkloadSimMask(datum types.Datum, tp *types.FieldType) (types.Datum, *types.FieldType, error) {
 	switch datum.Kind() {
 	case types.KindInt64:
@@ -170,7 +176,40 @@ func WorkloadSimMask(datum types.Datum, tp *types.FieldType) (types.Datum, *type
 		_, err := hashDecimal(d)
 		return datum, tp, err
 
+	case types.KindString:
+		s := hashString(datum.GetString())
+		datum.SetString(s, datum.Collation())
+		return datum, tp, nil
+
+	case types.KindBytes:
+		bs := datum.GetBytes()
+		bs = hashBytes(bs, len(bs))
+		datum.SetBytes(bs)
+		return datum, tp, nil
+
 	default:
 		return types.NewDatum("unimplemented"), types.NewFieldType(mysql.TypeString), nil
 	}
 }
+
+/*
+KindNull          byte = 0
+KindInt64         byte = 1
+KindUint64        byte = 2
+KindFloat32       byte = 3
+KindFloat64       byte = 4
+KindString        byte = 5
+KindBytes         byte = 6
+KindBinaryLiteral byte = 7 // Used for BIT / HEX literals.
+KindMysqlDecimal  byte = 8
+KindMysqlDuration byte = 9
+KindMysqlEnum     byte = 10
+KindMysqlBit      byte = 11 // Used for BIT table column values.
+KindMysqlSet      byte = 12
+KindMysqlTime     byte = 13
+KindInterface     byte = 14
+KindMinNotNull    byte = 15
+KindMaxValue      byte = 16
+KindRaw           byte = 17
+KindMysqlJSON     byte = 18
+*/
