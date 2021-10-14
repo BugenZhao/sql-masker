@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	lj "github.com/LianjiaTech/d18n/mask"
 	"github.com/pingcap/parser/mysql"
 	"github.com/pingcap/tidb/types"
 	"golang.org/x/crypto/blake2b"
@@ -104,6 +105,13 @@ func hashFloat64(f float64) float64 {
 	return math.Float64frombits(u)
 }
 
+// todo: this is NOT PURE
+func maskFloat64(f float64) float64 {
+	s, _ := lj.LaplaceDPFloat64(f, 100, 1, 1, 0)
+	f, _ = strconv.ParseFloat(s, 64)
+	return f
+}
+
 func hashDecimal(d *types.MyDecimal) (*types.MyDecimal, error) {
 	prec, frac := d.PrecisionAndFrac()
 	f, err := d.ToFloat64()
@@ -149,6 +157,11 @@ func hashString(s string) string {
 	return hex
 }
 
+func maskTime(t types.Time) string {
+	rounded, _ := lj.DateRound(t.String(), "day")
+	return rounded
+}
+
 func WorkloadSimMask(datum types.Datum, tp *types.FieldType) (types.Datum, *types.FieldType, error) {
 	switch datum.Kind() {
 	case types.KindInt64:
@@ -186,6 +199,11 @@ func WorkloadSimMask(datum types.Datum, tp *types.FieldType) (types.Datum, *type
 		bs = hashBytes(bs, len(bs))
 		datum.SetBytes(bs)
 		return datum, tp, nil
+
+	// it's ok to return a string, since all non-numeric types will be converted to string when serializing text events
+	case types.KindMysqlTime:
+		ds := maskTime(datum.GetMysqlTime())
+		return types.NewDatum(ds), stringTp, nil
 
 	default:
 		return datum, tp, fmt.Errorf("unimplemented for type `%v`", tp)

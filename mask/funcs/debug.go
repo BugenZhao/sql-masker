@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/pingcap/parser/mysql"
 	"github.com/pingcap/tidb/types"
 )
 
@@ -21,11 +20,11 @@ func extractDebugInfo(datum types.Datum, tp *types.FieldType) (tpDesc string, da
 func DebugMaskColor(datum types.Datum, tp *types.FieldType) (types.Datum, *types.FieldType, error) {
 	tpDesc, datumDesc := extractDebugInfo(datum, tp)
 	info := fmt.Sprintf("%s %s", color.GreenString(tpDesc), color.CyanString(datumDesc))
-	return types.NewDatum(info), types.NewFieldType(mysql.TypeString), nil
+	return types.NewDatum(info), stringTp, nil
 }
 
 func DebugMask(datum types.Datum, tp *types.FieldType) (types.Datum, *types.FieldType, error) {
 	tpDesc, datumDesc := extractDebugInfo(datum, tp)
 	info := fmt.Sprintf("%s %s", tpDesc, datumDesc)
-	return types.NewDatum(info), types.NewFieldType(mysql.TypeString), nil
+	return types.NewDatum(info), stringTp, nil
 }
