@@ -106,11 +106,11 @@ func hashFloat64(f float64) float64 {
 }
 
 // todo: this is NOT PURE
-func maskFloat64(f float64) float64 {
-	s, _ := lj.LaplaceDPFloat64(f, 100, 1, 1, 0)
-	f, _ = strconv.ParseFloat(s, 64)
-	return f
-}
+// func maskFloat64(f float64) float64 {
+// 	s, _ := lj.LaplaceDPFloat64(f, 100, 1, 1, 0)
+// 	f, _ = strconv.ParseFloat(s, 64)
+// 	return f
+// }
 
 func hashDecimal(d *types.MyDecimal) (*types.MyDecimal, error) {
 	prec, frac := d.PrecisionAndFrac()

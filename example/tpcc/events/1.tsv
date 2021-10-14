@@ -1,0 +1,354 @@
+1632366631950	0	"test"
+1632366631953	3	1	"SELECT c_discount, c_last, c_credit, w_tax FROM customer, warehouse WHERE w_id = ? AND c_w_id = w_id AND c_d_id = ? AND c_id = ?"
+1632366631981	3	2	"SELECT d_next_o_id, d_tax FROM district WHERE d_id = ? AND d_w_id = ? FOR UPDATE"
+1632366631982	3	3	"UPDATE district SET d_next_o_id = ? + 1 WHERE d_id = ? AND d_w_id = ?"
+1632366631982	3	4	"INSERT INTO orders (o_id, o_d_id, o_w_id, o_c_id, o_entry_d, o_ol_cnt, o_all_local) VALUES (?, ?, ?, ?, ?, ?, ?)"
+1632366631983	3	5	"INSERT INTO new_order (no_o_id, no_d_id, no_w_id) VALUES (?, ?, ?)"
+1632366631985	3	6	"UPDATE stock SET s_quantity = ?, s_ytd = s_ytd + ?, s_order_cnt = s_order_cnt + 1, s_remote_cnt = s_remote_cnt + ? WHERE s_i_id = ? AND s_w_id = ?"
+1632366631986	3	7	"SELECT i_price, i_name, i_data, i_id FROM item WHERE i_id IN (?,?,?,?,?)"
+1632366631987	3	8	"SELECT s_i_id, s_quantity, s_data, s_dist_01, s_dist_02, s_dist_03, s_dist_04, s_dist_05, s_dist_06, s_dist_07, s_dist_08, s_dist_09, s_dist_10 FROM stock WHERE (s_w_id, s_i_id) IN ((?,?),(?,?),(?,?),(?,?),(?,?)) FOR UPDATE"
+1632366631987	3	9	"INSERT into order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_dist_info) VALUES (?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?)"
+1632366631988	3	10	"SELECT i_price, i_name, i_data, i_id FROM item WHERE i_id IN (?,?,?,?,?,?)"
+1632366631989	3	11	"SELECT s_i_id, s_quantity, s_data, s_dist_01, s_dist_02, s_dist_03, s_dist_04, s_dist_05, s_dist_06, s_dist_07, s_dist_08, s_dist_09, s_dist_10 FROM stock WHERE (s_w_id, s_i_id) IN ((?,?),(?,?),(?,?),(?,?),(?,?),(?,?)) FOR UPDATE"
+1632366631989	3	12	"INSERT into order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_dist_info) VALUES (?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?)"
+1632366631989	3	13	"SELECT i_price, i_name, i_data, i_id FROM item WHERE i_id IN (?,?,?,?,?,?,?)"
+1632366631990	3	14	"SELECT s_i_id, s_quantity, s_data, s_dist_01, s_dist_02, s_dist_03, s_dist_04, s_dist_05, s_dist_06, s_dist_07, s_dist_08, s_dist_09, s_dist_10 FROM stock WHERE (s_w_id, s_i_id) IN ((?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?)) FOR UPDATE"
+1632366631991	3	15	"INSERT into order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_dist_info) VALUES (?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?)"
+1632366631991	3	16	"SELECT i_price, i_name, i_data, i_id FROM item WHERE i_id IN (?,?,?,?,?,?,?,?)"
+1632366631993	3	17	"SELECT s_i_id, s_quantity, s_data, s_dist_01, s_dist_02, s_dist_03, s_dist_04, s_dist_05, s_dist_06, s_dist_07, s_dist_08, s_dist_09, s_dist_10 FROM stock WHERE (s_w_id, s_i_id) IN ((?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?)) FOR UPDATE"
+1632366631994	3	18	"INSERT into order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_dist_info) VALUES (?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?)"
+1632366631994	3	19	"SELECT i_price, i_name, i_data, i_id FROM item WHERE i_id IN (?,?,?,?,?,?,?,?,?)"
+1632366631995	3	20	"SELECT s_i_id, s_quantity, s_data, s_dist_01, s_dist_02, s_dist_03, s_dist_04, s_dist_05, s_dist_06, s_dist_07, s_dist_08, s_dist_09, s_dist_10 FROM stock WHERE (s_w_id, s_i_id) IN ((?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?)) FOR UPDATE"
+1632366631996	3	21	"INSERT into order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_dist_info) VALUES (?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?)"
+1632366631996	3	22	"SELECT i_price, i_name, i_data, i_id FROM item WHERE i_id IN (?,?,?,?,?,?,?,?,?,?)"
+1632366631997	3	23	"SELECT s_i_id, s_quantity, s_data, s_dist_01, s_dist_02, s_dist_03, s_dist_04, s_dist_05, s_dist_06, s_dist_07, s_dist_08, s_dist_09, s_dist_10 FROM stock WHERE (s_w_id, s_i_id) IN ((?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?)) FOR UPDATE"
+1632366631997	3	24	"INSERT into order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_dist_info) VALUES (?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?)"
+1632366631998	3	25	"SELECT i_price, i_name, i_data, i_id FROM item WHERE i_id IN (?,?,?,?,?,?,?,?,?,?,?)"
+1632366631999	3	26	"SELECT s_i_id, s_quantity, s_data, s_dist_01, s_dist_02, s_dist_03, s_dist_04, s_dist_05, s_dist_06, s_dist_07, s_dist_08, s_dist_09, s_dist_10 FROM stock WHERE (s_w_id, s_i_id) IN ((?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?)) FOR UPDATE"
+1632366632000	3	27	"INSERT into order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_dist_info) VALUES (?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?)"
+1632366632000	3	28	"SELECT i_price, i_name, i_data, i_id FROM item WHERE i_id IN (?,?,?,?,?,?,?,?,?,?,?,?)"
+1632366632005	3	29	"SELECT s_i_id, s_quantity, s_data, s_dist_01, s_dist_02, s_dist_03, s_dist_04, s_dist_05, s_dist_06, s_dist_07, s_dist_08, s_dist_09, s_dist_10 FROM stock WHERE (s_w_id, s_i_id) IN ((?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?)) FOR UPDATE"
+1632366632009	3	30	"INSERT into order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_dist_info) VALUES (?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?)"
+1632366632010	3	31	"SELECT i_price, i_name, i_data, i_id FROM item WHERE i_id IN (?,?,?,?,?,?,?,?,?,?,?,?,?)"
+1632366632011	3	32	"SELECT s_i_id, s_quantity, s_data, s_dist_01, s_dist_02, s_dist_03, s_dist_04, s_dist_05, s_dist_06, s_dist_07, s_dist_08, s_dist_09, s_dist_10 FROM stock WHERE (s_w_id, s_i_id) IN ((?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?)) FOR UPDATE"
+1632366632012	3	33	"INSERT into order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_dist_info) VALUES (?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?)"
+1632366632012	3	34	"SELECT i_price, i_name, i_data, i_id FROM item WHERE i_id IN (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+1632366632013	3	35	"SELECT s_i_id, s_quantity, s_data, s_dist_01, s_dist_02, s_dist_03, s_dist_04, s_dist_05, s_dist_06, s_dist_07, s_dist_08, s_dist_09, s_dist_10 FROM stock WHERE (s_w_id, s_i_id) IN ((?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?)) FOR UPDATE"
+1632366632014	3	36	"INSERT into order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_dist_info) VALUES (?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?)"
+1632366632014	3	37	"SELECT i_price, i_name, i_data, i_id FROM item WHERE i_id IN (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+1632366632016	3	38	"SELECT s_i_id, s_quantity, s_data, s_dist_01, s_dist_02, s_dist_03, s_dist_04, s_dist_05, s_dist_06, s_dist_07, s_dist_08, s_dist_09, s_dist_10 FROM stock WHERE (s_w_id, s_i_id) IN ((?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?),(?,?)) FOR UPDATE"
+1632366632017	3	39	"INSERT into order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_dist_info) VALUES (?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?),(?,?,?,?,?,?,?,?,?)"
+1632366632019	3	40	"UPDATE warehouse SET w_ytd = w_ytd + ? WHERE w_id = ?"
+1632366632020	3	41	"SELECT w_street_1, w_street_2, w_city, w_state, w_zip, w_name FROM warehouse WHERE w_id = ?"
+1632366632022	3	42	"UPDATE district SET d_ytd = d_ytd + ? WHERE d_w_id = ? AND d_id = ?"
+1632366632037	3	43	"SELECT d_street_1, d_street_2, d_city, d_state, d_zip, d_name FROM district WHERE d_w_id = ? AND d_id = ?"
+1632366632037	3	44	"SELECT c_id FROM customer WHERE c_w_id = ? AND c_d_id = ? AND c_last = ? ORDER BY c_first"
+1632366632042	3	45	"SELECT c_first, c_middle, c_last, c_street_1, c_street_2, c_city, c_state, c_zip, c_phone,\nc_credit, c_credit_lim, c_discount, c_balance, c_since FROM customer WHERE c_w_id = ? AND c_d_id = ? \nAND c_id = ? FOR UPDATE"
+1632366632049	3	46	"SELECT c_data FROM customer WHERE c_w_id = ? AND c_d_id = ? AND c_id = ?"
+1632366632055	3	47	"UPDATE customer SET c_balance = c_balance - ?, c_ytd_payment = c_ytd_payment + ?, \nc_payment_cnt = c_payment_cnt + 1, c_data = ? WHERE c_w_id = ? AND c_d_id = ? AND c_id = ?"
+1632366632057	3	48	"UPDATE customer SET c_balance = c_balance - ?, c_ytd_payment = c_ytd_payment + ?, \nc_payment_cnt = c_payment_cnt + 1 WHERE c_w_id = ? AND c_d_id = ? AND c_id = ?"
+1632366632057	3	49	"INSERT INTO history (h_c_d_id, h_c_w_id, h_c_id, h_d_id, h_w_id, h_date, h_amount, h_data)\nVALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+1632366632058	3	50	"SELECT count(c_id) namecnt FROM customer WHERE c_w_id = ? AND c_d_id = ? AND c_last = ?"
+1632366632058	3	51	"SELECT c_balance, c_first, c_middle, c_id FROM customer WHERE c_w_id = ? AND c_d_id = ? AND c_last = ? ORDER BY c_first"
+1632366632058	3	52	"SELECT c_balance, c_first, c_middle, c_last FROM customer WHERE c_w_id = ? AND c_d_id = ? AND c_id = ?"
+1632366632058	3	53	"SELECT o_id, o_carrier_id, o_entry_d FROM orders WHERE o_w_id = ? AND o_d_id = ? AND o_c_id = ? ORDER BY o_id DESC LIMIT 1"
+1632366632060	3	54	"SELECT ol_i_id, ol_supply_w_id, ol_quantity, ol_amount, ol_delivery_d FROM order_line WHERE ol_w_id = ? AND ol_d_id = ? AND ol_o_id = ?"
+1632366632061	3	55	"SELECT no_o_id FROM new_order WHERE no_w_id = ? AND no_d_id = ? ORDER BY no_o_id ASC LIMIT 1 FOR UPDATE"
+1632366632063	3	56	"DELETE FROM new_order WHERE (no_w_id, no_d_id, no_o_id) IN (\n\t(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?)\n)"
+1632366632064	3	57	"UPDATE orders SET o_carrier_id = ? WHERE (o_w_id, o_d_id, o_id) IN (\n\t(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?)\n)"
+1632366632065	3	58	"SELECT o_d_id, o_c_id FROM orders WHERE (o_w_id, o_d_id, o_id) IN (\n\t(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?)\n)"
+1632366632066	3	59	"UPDATE order_line SET ol_delivery_d = ? WHERE (ol_w_id, ol_d_id, ol_o_id) IN (\n\t(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?)\n)"
+1632366632067	3	60	"SELECT ol_d_id, SUM(ol_amount) FROM order_line WHERE (ol_w_id, ol_d_id, ol_o_id) IN (\n\t(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?),(?,?,?)\n) GROUP BY ol_d_id"
+1632366632068	3	61	"UPDATE customer SET c_balance = c_balance + ?, c_delivery_cnt = c_delivery_cnt + 1 WHERE c_w_id = ? AND c_d_id = ? AND c_id = ?"
+1632366632068	3	62	"SELECT d_next_o_id FROM district WHERE d_w_id = ? AND d_id = ?"
+1632366632073	3	63	"SELECT /*+ TIDB_INLJ(order_line,stock) */ COUNT(DISTINCT (s_i_id)) stock_count FROM order_line, stock \nWHERE ol_w_id = ? AND ol_d_id = ? AND ol_o_id < ? AND ol_o_id >= ? - 20 AND s_w_id = ? AND s_i_id = ol_i_id AND s_quantity < ?"
+1632366632073	2	"START TRANSACTION"
+1632366632104	4	1	[iii	8963	3	760
+1632366632231	4	2	[ii	3	8963
+1632366632271	4	3	[iii	3001	3	8963
+1632366632271	4	4	[iiiisii	3001	3	8963	760	"2021-09-23 11:10:32"	9	1
+1632366632320	4	5	[iii	3001	3	8963
+1632366632384	4	19	[iiiiiiiii	61767	49471	52555	82379	16838	74184	4267	14735	47566
+1632366632386	4	20	[iiiiiiiiiiiiiiiiii	8963	61767	8963	49471	8963	52555	8963	82379	8963	16838	8963	74184	8963	4267	8963	14735	8963	47566
+1632366633024	4	6	[iiiii	33	2	0	61767	8963
+1632366633024	4	6	[iiiii	61	1	0	49471	8963
+1632366633025	4	6	[iiiii	37	1	0	52555	8963
+1632366633025	4	6	[iiiii	66	6	0	82379	8963
+1632366633025	4	6	[iiiii	50	1	0	16838	8963
+1632366633026	4	6	[iiiii	25	10	0	74184	8963
+1632366633026	4	6	[iiiii	95	2	0	4267	8963
+1632366633027	4	6	[iiiii	54	1	0	14735	8963
+1632366633027	4	6	[iiiii	40	3	0	47566	8963
+1632366633028	4	21	[iiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiids	3001	3	8963	1	61767	8963	2	120.35478720239999	"TGHXZMIRBLMNYCPTNYTCFARS"	3001	3	8963	2	49471	8963	1	24.977186514	"NUYMPXLVBARZGJKNOQHFAAYP"	3001	3	8963	3	52555	8963	1	58.19125587840001	"KTBEYUHGPPEZFLLVRAVWHXMF"	3001	3	8963	4	82379	8963	6	338.82993671040003	"RJOOZTXISOZDQHOGPBOLUUOE"	3001	3	8963	5	16838	8963	1	47.761883334	"DNNDSOOAWLPVCJIVWCFLGMFM"	3001	3	8963	6	74184	8963	10	549.41212332	"ICSYBZQRLXOXZWTQFIJWSLJM"	3001	3	8963	7	4267	8963	2	164.1014050968	"APZTFUKRMFZOAARRJTQEQKOG"	3001	3	8963	8	14735	8963	1	10.4121765468	"OCXDPOEZOLDVCFSKLZJWCHMM"	3001	3	8963	9	47566	8963	3	237.02103291960003	"WGNXFPCLWBTHXJIZCFMCZXJQ"
+1632366633069	2	"COMMIT"
+1632366633682	2	"START TRANSACTION"
+1632366633682	4	1	[iii	5474	6	2623
+1632366633773	4	2	[ii	6	5474
+1632366633775	4	3	[iii	3001	6	5474
+1632366633776	4	4	[iiiisii	3001	6	5474	2623	"2021-09-23 11:10:33"	7	1
+1632366633986	4	5	[iii	3001	6	5474
+1632366634066	4	13	[iiiiiii	75721	2365	65995	40890	8649	95151	93767
+1632366634066	4	14	[iiiiiiiiiiiiii	5474	75721	5474	2365	5474	65995	5474	40890	5474	8649	5474	95151	5474	93767
+1632366634424	4	6	[iiiii	66	6	0	75721	5474
+1632366634425	4	6	[iiiii	16	9	0	2365	5474
+1632366634425	4	6	[iiiii	42	1	0	65995	5474
+1632366634425	4	6	[iiiii	82	5	0	40890	5474
+1632366634425	4	6	[iiiii	45	4	0	8649	5474
+1632366634426	4	6	[iiiii	53	3	0	95151	5474
+1632366634426	4	6	[iiiii	100	4	0	93767	5474
+1632366634426	4	15	[iiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiids	3001	6	5474	1	75721	5474	6	183.43955774880004	"BBWBUFRKCXHEITAMIKHMPTEV"	3001	6	5474	2	2365	5474	9	150.84959234400003	"ZCMBNIBUFJXXAVNTSTTUHPID"	3001	6	5474	3	65995	5474	1	4.284379390400002	"RZLYTNIETACVSIXXFBRNNXCN"	3001	6	5474	4	40890	5474	5	137.44970282800006	"WFLUNOWUQNHILIKRPHPESGLD"	3001	6	5474	5	8649	5474	4	149.68438456000004	"WWKEZQSJQZGQSPLSRHUOLXLG"	3001	6	5474	6	95151	5474	3	60.877625145600014	"EBVHKNUEZHNAGATLKVMNSPKZ"	3001	6	5474	7	93767	5474	4	149.79194220160005	"BKDMYHQPSOWSBJEHECOJKBOG"
+1632366634445	2	"COMMIT"
+1632366634669	2	"START TRANSACTION"
+1632366634670	4	1	[iii	3067	4	2040
+1632366634686	4	2	[ii	4	3067
+1632366634701	4	3	[iii	3001	4	3067
+1632366634701	4	4	[iiiisii	3001	4	3067	2040	"2021-09-23 11:10:34"	7	1
+1632366634794	4	5	[iii	3001	4	3067
+1632366634949	4	13	[iiiiiii	45351	44495	56771	24015	96059	33230	207
+1632366634950	4	14	[iiiiiiiiiiiiii	3067	45351	3067	44495	3067	56771	3067	24015	3067	96059	3067	33230	3067	207
+1632366635075	4	6	[iiiii	13	7	0	45351	3067
+1632366635075	4	6	[iiiii	56	3	0	44495	3067
+1632366635076	4	6	[iiiii	12	10	0	56771	3067
+1632366635076	4	6	[iiiii	11	2	0	24015	3067
+1632366635077	4	6	[iiiii	77	9	0	96059	3067
+1632366635077	4	6	[iiiii	45	3	0	33230	3067
+1632366635077	4	6	[iiiii	53	5	0	207	3067
+1632366635078	4	15	[iiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiids	3001	4	3067	1	45351	3067	7	250.64999210930003	"OBDCINOEVFPUOPCDYDVQVKXI"	3001	4	3067	2	44495	3067	3	131.25256677060003	"ZVVYEVUJYDLOFATZIEKRMJIU"	3001	4	3067	3	56771	3067	10	1068.171316042	"FYORYWKJLDMDLTQKTLBFGTPS"	3001	4	3067	4	24015	3067	2	130.00003097520002	"EWEOIYTGUCKSYWODHPOXSCGN"	3001	4	3067	5	96059	3067	9	927.7334867717998	"WEKKSPDJAJCIBEXWFKKVRLDR"	3001	4	3067	6	33230	3067	3	149.6780275503	"HVZIMYJTHVULHVKUNYOKGRDF"	3001	4	3067	7	207	3067	5	135.581506274	"GUPXYQLVVQEZQHAORVLLUYZW"
+1632366635113	2	"COMMIT"
+1632366635241	2	"START TRANSACTION"
+1632366635241	4	1	[iii	5856	8	1143
+1632366635255	4	2	[ii	8	5856
+1632366635266	4	3	[iii	3001	8	5856
+1632366635267	4	4	[iiiisii	3001	8	5856	1143	"2021-09-23 11:10:35"	8	1
+1632366635296	4	5	[iii	3001	8	5856
+1632366635321	4	16	[iiiiiiii	25037	42379	49551	4135	32973	8651	12175	70909
+1632366635322	4	17	[iiiiiiiiiiiiiiii	5856	25037	5856	42379	5856	49551	5856	4135	5856	32973	5856	8651	5856	12175	5856	70909
+1632366635390	4	6	[iiiii	16	3	0	25037	5856
+1632366635390	4	6	[iiiii	21	2	0	42379	5856
+1632366635391	4	6	[iiiii	82	8	0	49551	5856
+1632366635391	4	6	[iiiii	98	9	0	4135	5856
+1632366635391	4	6	[iiiii	20	8	0	32973	5856
+1632366635392	4	6	[iiiii	32	5	0	8651	5856
+1632366635392	4	6	[iiiii	86	5	0	12175	5856
+1632366635392	4	6	[iiiii	79	1	0	70909	5856
+1632366635393	4	18	[iiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiids	3001	8	5856	1	25037	5856	3	40.6334542716	"EYYZTWEFPXYBUCCTBGFADLPE"	3001	8	5856	2	42379	5856	2	29.231140276799998	"JRBJPAUHGATEJULDRFIWLSUR"	3001	8	5856	3	49551	5856	8	12.3649350336	"JUCFDDJUSVQVNGYHWCWVMGQH"	3001	8	5856	4	4135	5856	9	1148.7187342728	"ALYPWOMNITSSODJMLGUPXTTJ"	3001	8	5856	5	32973	5856	8	944.7244223040001	"RBVGJXXBPXCZQTATOPHCDWXI"	3001	8	5856	6	8651	5856	5	599.062121118	"NKRLRUDPNCCJYVKFOUKJPMNP"	3001	8	5856	7	12175	5856	5	40.131806688000005	"GTUMVRFWIBXSXHQORSOKVPZN"	3001	8	5856	8	70909	5856	1	32.607092934	"CUKVCPWVRDEVAMCVHLKIUCYS"
+1632366635475	2	"COMMIT"
+1632366635561	2	"START TRANSACTION"
+1632366635561	4	1	[iii	5179	4	2806
+1632366635585	4	2	[ii	4	5179
+1632366635615	4	3	[iii	3001	4	5179
+1632366635615	4	4	[iiiisii	3001	4	5179	2806	"2021-09-23 11:10:35"	5	1
+1632366635686	4	5	[iii	3001	4	5179
+1632366635708	4	7	[iiiii	65375	74173	85967	41413	90542
+1632366635709	4	8	[iiiiiiiiii	5179	65375	5179	74173	5179	85967	5179	41413	5179	90542
+1632366635718	4	6	[iiiii	13	2	0	65375	5179
+1632366635718	4	6	[iiiii	20	10	0	74173	5179
+1632366635718	4	6	[iiiii	34	9	0	85967	5179
+1632366635719	4	6	[iiiii	97	5	0	41413	5179
+1632366635719	4	6	[iiiii	30	4	0	90542	5179
+1632366635719	4	9	[iiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiids	3001	4	5179	1	65375	5179	2	26.236728198	"ZDKHNUOLGHCNNSCIOTQVWWFJ"	3001	4	5179	2	74173	5179	10	792.7819623540001	"TADHCBFVBCHRZCDZINTAMTNU"	3001	4	5179	3	85967	5179	9	177.4630656774	"OGWMAJLPJSPWOBKOECPZHQSZ"	3001	4	5179	4	41413	5179	5	32.45780808	"IEBQBZTQPWDDKUNWIBAITADK"	3001	4	5179	5	90542	5179	4	8.7996724128	"YPQNQXFFAKUDBQRAGFPBODBB"
+1632366635778	2	"COMMIT"
+1632366635851	2	"START TRANSACTION"
+1632366635851	4	42	[dii	239.94	1415	3
+1632366635907	4	43	[ii	1415	3
+1632366635909	4	40	[di	239.94	1415
+1632366636012	4	41	[i	1415
+1632366636013	4	44	[iis	1415	3	"PRESPRESBAR"
+1632366636032	4	45	[iii	1415	3	441
+1632366636037	4	48	[ddiii	239.94	239.94	1415	3	441
+1632366636041	4	49	[iiiiisds	3	1415	441	3	1415	"2021-09-23 11:10:36"	239.94	" zRdON4F41       2PN2sJO"
+1632366636249	2	"COMMIT"
+1632366636371	2	"START TRANSACTION"
+1632366636373	4	1	[iii	2267	8	176
+1632366636428	4	2	[ii	8	2267
+1632366636551	4	3	[iii	3001	8	2267
+1632366636552	4	4	[iiiisii	3001	8	2267	176	"2021-09-23 11:10:36"	5	1
+1632366636563	4	5	[iii	3001	8	2267
+1632366636568	4	7	[iiiii	81739	56783	32390	73991	75980
+1632366636570	4	8	[iiiiiiiiii	2267	81739	2267	56783	2267	32390	2267	73991	2267	75980
+1632366636614	4	6	[iiiii	18	9	0	81739	2267
+1632366636617	4	6	[iiiii	63	5	0	56783	2267
+1632366636619	4	6	[iiiii	43	10	0	32390	2267
+1632366636624	4	6	[iiiii	68	8	0	73991	2267
+1632366636629	4	6	[iiiii	56	10	0	75980	2267
+1632366636634	4	9	[iiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiids	3001	8	2267	1	81739	2267	9	568.9781008632	"KCPFRTABYQFGGDJWMRSATUXI"	3001	8	2267	2	56783	2267	5	106.5475159	"LALYAMWNAACKVQLBUUBNEKWL"	3001	8	2267	3	32390	2267	10	98.35892029599998	"VRNDCZVLINDLNEZUZCIPGJSQ"	3001	8	2267	4	73991	2267	8	375.6602034752	"IZTUTZYYILQXFDRUQBAPGUQP"	3001	8	2267	5	75980	2267	10	895.861090992	"YKBHPEVDBGHICIKLZCNRWKGW"
+1632366636659	2	"COMMIT"
+1632366636752	2	"START TRANSACTION"
+1632366636755	4	1	[iii	1718	10	984
+1632366636792	4	2	[ii	10	1718
+1632366636814	4	3	[iii	3001	10	1718
+1632366636814	4	4	[iiiisii	3001	10	1718	984	"2021-09-23 11:10:36"	14	1
+1632366636819	4	5	[iii	3001	10	1718
+1632366636827	4	34	[iiiiiiiiiiiiii	90475	40143	3502	46527	89549	36988	2734	30148	82127	56975	20649	81286	77743	87663
+1632366636828	4	35	[iiiiiiiiiiiiiiiiiiiiiiiiiiii	1718	90475	1718	40143	1718	3502	1718	46527	1718	89549	1718	36988	1718	2734	1718	30148	1718	82127	1718	56975	1718	20649	1718	81286	1718	77743	1718	87663
+1632366636848	4	6	[iiiii	12	10	0	90475	1718
+1632366636849	4	6	[iiiii	92	4	0	40143	1718
+1632366636849	4	6	[iiiii	29	7	0	3502	1718
+1632366636850	4	6	[iiiii	35	5	0	46527	1718
+1632366636850	4	6	[iiiii	80	3	0	89549	1718
+1632366636850	4	6	[iiiii	74	6	0	36988	1718
+1632366636851	4	6	[iiiii	81	1	0	2734	1718
+1632366636851	4	6	[iiiii	98	6	0	30148	1718
+1632366636852	4	6	[iiiii	61	10	0	82127	1718
+1632366636852	4	6	[iiiii	22	4	0	56975	1718
+1632366636853	4	6	[iiiii	84	8	0	20649	1718
+1632366636853	4	6	[iiiii	32	7	0	81286	1718
+1632366636854	4	6	[iiiii	98	8	0	77743	1718
+1632366636855	4	6	[iiiii	94	2	0	87663	1718
+1632366636855	4	36	[iiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiids	3001	10	1718	1	90475	1718	10	504.15713912000007	"VGWRMHTCZVQXFZTLVDSULCTU"	3001	10	1718	2	40143	1718	4	85.628621952	"YQXCTUBHNECKQGUCIVNCQEEB"	3001	10	1718	3	3502	1718	7	188.917430744	"MYFGNIIYGBIOYMEIQKMOUANF"	3001	10	1718	4	46527	1718	5	192.75753628	"JOWRIVAVWVOVHDXOFNVDZAKJ"	3001	10	1718	5	89549	1718	3	37.999850304	"XGWIKAVTLRIAUUFCIWXBJCLL"	3001	10	1718	6	36988	1718	6	26.178629904000005	"EBJHWNNDKRGFPDHMOOQWTDMB"	3001	10	1718	7	2734	1718	1	64.8376028	"DACYEIDKRXHSDHUVPZCQOSLJ"	3001	10	1718	8	30148	1718	6	317.539473072	"YKODYMGRHVRNBAXPVSOJFOGG"	3001	10	1718	9	82127	1718	10	303.98447368	"DFGDUQEXXINYLONXMDADLUSC"	3001	10	1718	10	56975	1718	4	221.14995836800003	"DLNDLZMJVLRZBUUGQHLHXYWU"	3001	10	1718	11	20649	1718	8	110.44602041600001	"FBAVEJVFUYMVTEFMCRKHSDYY"	3001	10	1718	12	81286	1718	7	476.33070273600003	"NKWEAFFYSWJQCLMRLIKOOLDX"	3001	10	1718	13	77743	1718	8	429.2894099200001	"UQPKFBKXPXFWZPTDASITHEGC"	3001	10	1718	14	87663	1718	2	116.60738377599999	"ODTTVQRVTCUVPUJFEXMXUUAP"
+1632366636884	2	"COMMIT"
+1632366636920	2	"START TRANSACTION"
+1632366636921	4	55	[ii	727	1
+1632366636933	4	55	[ii	727	2
+1632366636936	4	55	[ii	727	3
+1632366636939	4	55	[ii	727	4
+1632366636940	4	55	[ii	727	5
+1632366636942	4	55	[ii	727	6
+1632366636945	4	55	[ii	727	7
+1632366636946	4	55	[ii	727	8
+1632366636949	4	55	[ii	727	9
+1632366636951	4	55	[ii	727	10
+1632366636953	4	56	[iiiiiiiiiiiiiiiiiiiiiiiiiiiiii	727	1	2101	727	2	2101	727	3	2101	727	4	2101	727	5	2101	727	6	2101	727	7	2101	727	8	2101	727	9	2101	727	10	2101
+1632366636957	4	57	[iiiiiiiiiiiiiiiiiiiiiiiiiiiiiii	6	727	1	2101	727	2	2101	727	3	2101	727	4	2101	727	5	2101	727	6	2101	727	7	2101	727	8	2101	727	9	2101	727	10	2101
+1632366636985	4	58	[iiiiiiiiiiiiiiiiiiiiiiiiiiiiii	727	1	2101	727	2	2101	727	3	2101	727	4	2101	727	5	2101	727	6	2101	727	7	2101	727	8	2101	727	9	2101	727	10	2101
+1632366636985	4	59	[siiiiiiiiiiiiiiiiiiiiiiiiiiiiii	"2021-09-23 11:10:36"	727	1	2101	727	2	2101	727	3	2101	727	4	2101	727	5	2101	727	6	2101	727	7	2101	727	8	2101	727	9	2101	727	10	2101
+1632366637091	4	60	[iiiiiiiiiiiiiiiiiiiiiiiiiiiiii	727	1	2101	727	2	2101	727	3	2101	727	4	2101	727	5	2101	727	6	2101	727	7	2101	727	8	2101	727	9	2101	727	10	2101
+1632366637096	4	61	[diii	23852.16	727	1	2334
+1632366637184	4	61	[diii	30811.91	727	2	2641
+1632366637211	4	61	[diii	47828.78	727	3	1468
+1632366637223	4	61	[diii	27518.89	727	4	29
+1632366637235	4	61	[diii	56114.18	727	5	459
+1632366637248	4	61	[diii	38532.06	727	6	867
+1632366637252	4	61	[diii	27653.34	727	7	988
+1632366637255	4	61	[diii	90155.44	727	8	2438
+1632366637264	4	61	[diii	72348.15	727	9	2438
+1632366637277	4	61	[diii	28536.36	727	10	2509
+1632366637286	2	"COMMIT"
+1632366637324	2	"START TRANSACTION"
+1632366637324	4	1	[iii	8347	5	2247
+1632366637337	4	2	[ii	5	8347
+1632366637344	4	3	[iii	3001	5	8347
+1632366637344	4	4	[iiiisii	3001	5	8347	2247	"2021-09-23 11:10:37"	10	1
+1632366637345	4	5	[iii	3001	5	8347
+1632366637348	4	22	[iiiiiiiiii	27087	77983	98751	82364	16335	94159	48702	65703	58807	98767
+1632366637349	4	23	[iiiiiiiiiiiiiiiiiiii	8347	27087	8347	77983	8347	98751	8347	82364	8347	16335	8347	94159	8347	48702	8347	65703	8347	58807	8347	98767
+1632366637364	4	6	[iiiii	22	5	0	27087	8347
+1632366637365	4	6	[iiiii	97	4	0	77983	8347
+1632366637365	4	6	[iiiii	68	6	0	98751	8347
+1632366637365	4	6	[iiiii	28	6	0	82364	8347
+1632366637366	4	6	[iiiii	56	2	0	16335	8347
+1632366637366	4	6	[iiiii	15	9	0	94159	8347
+1632366637366	4	6	[iiiii	30	2	0	48702	8347
+1632366637367	4	6	[iiiii	85	10	0	65703	8347
+1632366637367	4	6	[iiiii	91	4	0	58807	8347
+1632366637368	4	6	[iiiii	31	10	0	98767	8347
+1632366637368	4	24	[iiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiids	3001	5	8347	1	27087	8347	5	100.821027996	"ZVHELEFVCZQXXSDRMXNQBEGV"	3001	5	8347	2	77983	8347	4	47.860787519999995	"NWNSIQVIRTKYELDBUTOEMJET"	3001	5	8347	3	98751	8347	6	170.3502172944	"MRMRCDBHNJKBJAELOCYWLOTK"	3001	5	8347	4	82364	8347	6	172.8800017776	"CSPNSFSDQKEQNHYMEAFIKFWL"	3001	5	8347	5	16335	8347	2	54.5954840496	"PWGYZBMMNSTKFRBHTXJJFILG"	3001	5	8347	6	94159	8347	9	123.1731553104	"VPKGDODVZQIEICHJCADSMLHQ"	3001	5	8347	7	48702	8347	2	55.381768416	"JAJZNKHUBOLFPLFMZYJSGNHQ"	3001	5	8347	8	65703	8347	10	383.683979952	"MJOCCQDDYKDMDYUTVOHVQZJT"	3001	5	8347	9	58807	8347	4	98.04624186240001	"WGKNHHTEDTLGEHFIWAPTALUL"	3001	5	8347	10	98767	8347	10	167.22787068000002	"GOCTYBHWTYJETQFNKPVNNPLK"
+1632366637375	2	"COMMIT"
+1632366637440	2	"START TRANSACTION"
+1632366637441	4	1	[iii	4509	3	1142
+1632366637443	4	2	[ii	3	4509
+1632366637455	4	3	[iii	3001	3	4509
+1632366637456	4	4	[iiiisii	3001	3	4509	1142	"2021-09-23 11:10:37"	8	1
+1632366637457	4	5	[iii	3001	3	4509
+1632366637468	4	16	[iiiiiiii	31111	55727	56001	68813	14731	97734	94575	14207
+1632366637469	4	17	[iiiiiiiiiiiiiiii	4509	31111	4509	55727	4509	56001	4509	68813	4509	14731	4509	97734	4509	94575	4509	14207
+1632366637486	4	6	[iiiii	37	5	0	31111	4509
+1632366637487	4	6	[iiiii	15	1	0	55727	4509
+1632366637487	4	6	[iiiii	53	3	0	56001	4509
+1632366637488	4	6	[iiiii	84	6	0	68813	4509
+1632366637488	4	6	[iiiii	15	6	0	14731	4509
+1632366637488	4	6	[iiiii	88	10	0	97734	4509
+1632366637489	4	6	[iiiii	63	6	0	94575	4509
+1632366637489	4	6	[iiiii	56	3	0	14207	4509
+1632366637489	4	18	[iiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiids	3001	3	4509	1	31111	4509	5	304.7056798499999	"DGXOKTXBJXBQUNNTUJVPVNMS"	3001	3	4509	2	55727	4509	1	30.5944320825	"USYGOKOWGGGYVXPGXUKBNDGL"	3001	3	4509	3	56001	4509	3	256.0946517675	"DAVCGOIOPEMMFLIPEEGCYOTO"	3001	3	4509	4	68813	4509	6	665.9609503949998	"WYSGBNACNKSLRCODUXTJPNVL"	3001	3	4509	5	14731	4509	6	246.06165986999997	"XENKUTGFXVFMHZQWDPVXDIYB"	3001	3	4509	6	97734	4509	10	131.858961975	"KQSFFZNBKDUGFDYDNWQKYDPT"	3001	3	4509	7	94575	4509	6	103.30265731499998	"DUJTASHZNNCQFTNJZBYTFAVO"	3001	3	4509	8	14207	4509	3	141.407757855	"PEYVUWUDLUICZYSGRPJZWAPJ"
+1632366637513	2	"COMMIT"
+1632366637535	2	"START TRANSACTION"
+1632366637536	4	42	[dii	4093.85	8042	8
+1632366637552	4	43	[ii	8042	8
+1632366637552	4	40	[di	4093.85	8042
+1632366637565	4	41	[i	8042
+1632366637566	4	44	[iis	8042	8	"CALLYBARPRES"
+1632366637569	4	45	[iii	8042	8	705
+1632366637577	4	48	[ddiii	4093.85	4093.85	8042	8	705
+1632366637577	4	49	[iiiiisds	8	8042	705	8	8042	"2021-09-23 11:10:37"	4093.85	"n9KTIbhRK8     nSfHPka20"
+1632366637584	2	"COMMIT"
+1632366637618	2	"START TRANSACTION"
+1632366637618	4	1	[iii	8200	1	928
+1632366637620	4	2	[ii	1	8200
+1632366637632	4	3	[iii	3001	1	8200
+1632366637632	4	4	[iiiisii	3001	1	8200	928	"2021-09-23 11:10:37"	6	1
+1632366637641	4	5	[iii	3001	1	8200
+1632366637648	4	10	[iiiiii	89022	7887	36941	61895	31103	48541
+1632366637648	4	11	[iiiiiiiiiiii	8200	89022	8200	7887	8200	36941	8200	61895	8200	31103	8200	48541
+1632366637701	4	6	[iiiii	76	9	0	89022	8200
+1632366637701	4	6	[iiiii	36	2	0	7887	8200
+1632366637702	4	6	[iiiii	88	1	0	36941	8200
+1632366637702	4	6	[iiiii	17	9	0	61895	8200
+1632366637702	4	6	[iiiii	50	2	0	31103	8200
+1632366637703	4	6	[iiiii	49	5	0	48541	8200
+1632366637703	4	12	[iiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiidsiiiiiiids	3001	1	8200	1	89022	8200	9	892.7368421399999	"UKOFQWHAVBPVOOONNRZLVAME"	3001	1	8200	2	7887	8200	2	64.824709664	"SOBJRPXPHYJFCQJPFEIUXXSB"	3001	1	8200	3	36941	8200	1	36.023280304000004	"RHXKKKPXYRXOCZNWFDDRNADL"	3001	1	8200	4	61895	8200	9	435.92252952599995	"CBSBBJGAVCBCEKKRVGKPIGIV"	3001	1	8200	5	31103	8200	2	43.73948414	"EOSEYTEMQYABWNRLDFXOBADB"	3001	1	8200	6	48541	8200	5	393.44042121999996	"BEDIGPMQSMKWGLFOXRCSRFUY"
+1632366637746	2	"COMMIT"
+1632367231979	5	10
+1632367231979	5	23
+1632367231979	5	28
+1632367231979	5	30
+1632367231979	5	34
+1632367231979	5	38
+1632367231979	5	1
+1632367231979	5	6
+1632367231979	5	12
+1632367231979	5	17
+1632367231979	5	21
+1632367231979	5	24
+1632367231979	5	25
+1632367231979	5	18
+1632367231979	5	11
+1632367231979	5	15
+1632367231979	5	7
+1632367231979	5	8
+1632367231979	5	22
+1632367231979	5	36
+1632367231979	5	16
+1632367231979	5	29
+1632367231979	5	32
+1632367231979	5	37
+1632367231979	5	26
+1632367231979	5	2
+1632367231979	5	3
+1632367231979	5	5
+1632367231979	5	9
+1632367231979	5	14
+1632367231979	5	19
+1632367231979	5	20
+1632367231979	5	27
+1632367231979	5	31
+1632367231979	5	33
+1632367231979	5	4
+1632367231979	5	13
+1632367231979	5	35
+1632367231979	5	39
+1632367231980	5	40
+1632367231980	5	43
+1632367231980	5	46
+1632367231980	5	48
+1632367231980	5	49
+1632367231980	5	41
+1632367231980	5	42
+1632367231980	5	44
+1632367231980	5	45
+1632367231980	5	47
+1632367231980	5	55
+1632367231980	5	56
+1632367231980	5	57
+1632367231980	5	58
+1632367231980	5	59
+1632367231980	5	60
+1632367231980	5	61
+1632367231980	5	62
+1632367231980	5	63
+1632367231980	5	50
+1632367231980	5	51
+1632367231980	5	52
+1632367231980	5	53
+1632367231980	5	54
+1632367232000	1
