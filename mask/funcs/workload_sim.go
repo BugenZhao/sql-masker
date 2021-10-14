@@ -33,12 +33,20 @@ var (
 	defaultKey []byte = []byte("bugen")
 )
 
-func newHasher(size int) hash.Hash {
+func newSmallHasher(size int) hash.Hash {
 	digest, err := blake2b.New(size, defaultKey)
 	if err != nil {
 		panic(err)
 	}
 	return digest
+}
+
+func newBigHasher(size int) blake2b.XOF {
+	xof, err := blake2b.NewXOF(uint32(size), defaultKey)
+	if err != nil {
+		panic(err)
+	}
+	return xof
 }
 
 func resizeInt64(i int64, tp *types.FieldType) int64 {
@@ -86,10 +94,28 @@ func hashBytes(data interface{}, size int) []byte {
 		bs = buf.Bytes()
 	}
 
-	digest := newHasher(size)
-	digest.Write(bs)
+	var sum []byte
 
-	sum := digest.Sum([]byte{})
+	if size <= 64 {
+		digest := newSmallHasher(size)
+		digest.Write(bs)
+
+		sum = []byte{}
+		sum = digest.Sum(sum)
+	} else {
+		hasher := newBigHasher(size)
+		hasher.Write(bs)
+
+		sum = make([]byte, size)
+		n, err := hasher.Read(sum)
+		if err != nil {
+			panic(err)
+		}
+		if n != size {
+			panic(fmt.Sprintf("bad size `%d` vs `%d`", n, size))
+		}
+	}
+
 	return sum
 }
 
@@ -120,6 +146,10 @@ func hashDecimal(d *types.MyDecimal) (*types.MyDecimal, error) {
 	}
 	f = hashFloat64(f)
 
+	if math.IsNaN(f) || math.IsInf(f, 0) {
+		f = 0
+	}
+
 	neg := f < 0
 	f = math.Abs(f)
 	s := strconv.FormatFloat(f, 'f', frac, 64)
@@ -129,7 +159,10 @@ func hashDecimal(d *types.MyDecimal) (*types.MyDecimal, error) {
 	if len(left) > prec-frac {
 		left = left[len(left)-(prec-frac):]
 	}
-	right := tokens[1]
+	right := "0"
+	if len(tokens) >= 2 {
+		right = tokens[1]
+	}
 	if len(right) > frac {
 		right = right[:frac]
 	}
@@ -138,11 +171,15 @@ func hashDecimal(d *types.MyDecimal) (*types.MyDecimal, error) {
 	if neg {
 		prefix = "-"
 	}
-	s = fmt.Sprintf("%s%s.%s", prefix, left, right)
+	if right == "" {
+		s = fmt.Sprintf("%s%s", prefix, left)
+	} else {
+		s = fmt.Sprintf("%s%s.%s", prefix, left, right)
+	}
 
 	err = d.FromString([]byte(s))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse decimal `%s`; %w", s, err)
 	}
 	return d, nil
 }
