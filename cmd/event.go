@@ -36,7 +36,7 @@ func (opt *EventOption) RunFile(path string) (*mask.Stats, error) {
 	if err != nil {
 		return nil, err
 	}
-	masker := mask.NewEventWorker(db, maskfuncs.DebugMask)
+	masker := mask.NewEventWorker(db, maskfuncs.WorkloadSimMask)
 
 	outPath := opt.outPath(file.Name())
 	if _, err := os.Stat(outPath); err == nil {
@@ -47,7 +47,9 @@ func (opt *EventOption) RunFile(path string) (*mask.Stats, error) {
 		return nil, err
 	}
 	defer outFile.Close()
+
 	out := bufio.NewWriter(outFile)
+	defer out.Flush()
 
 	for in.Scan() {
 		ev := event.MySQLEvent{}
@@ -57,7 +59,7 @@ func (opt *EventOption) RunFile(path string) (*mask.Stats, error) {
 			return nil, err
 		}
 
-		ev, err = masker.MaskOne(ev)
+		mev, err := masker.MaskOne(ev)
 		if err != nil {
 			if opt.Verbose {
 				fmt.Printf("\n-> %s\n", text)
@@ -67,7 +69,7 @@ func (opt *EventOption) RunFile(path string) (*mask.Stats, error) {
 		}
 
 		maskedLine := []byte{}
-		maskedLine, err = event.AppendEvent(maskedLine, ev)
+		maskedLine, err = event.AppendEvent(maskedLine, mev)
 		if err != nil {
 			if opt.Verbose {
 				color.Red("!> %v\n", err)

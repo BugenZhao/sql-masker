@@ -22,7 +22,7 @@ func ConvertAndMask(sc *stmtctx.StatementContext, datum types.Datum, toType *typ
 		return datum, nil, fmt.Errorf("cannot cast `%v` to type `%v`; %w", datum, toType, err)
 	}
 
-	maskedDatum, maskedType, err := maskFunc(castedDatum, toType)
+	maskedDatum, maskedType, err := maskFunc(*castedDatum.Clone(), toType)
 	if err != nil {
 		return castedDatum, toType, fmt.Errorf("failed to mask `%v`; %w", castedDatum, err)
 	}

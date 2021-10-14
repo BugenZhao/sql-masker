@@ -87,7 +87,9 @@ func (w *EventWorker) MaskOneExecute(stmtID uint64, params []interface{}) ([]int
 		if err != nil {
 			return params, err
 		}
-		maskedParams = append(maskedParams, maskedDatum.GetValue())
+
+		maskedParam := datumToEventParam(maskedDatum)
+		maskedParams = append(maskedParams, maskedParam)
 	}
 
 	return maskedParams, nil
@@ -131,4 +133,36 @@ func (w *EventWorker) MaskOne(ev event.MySQLEvent) (event.MySQLEvent, error) {
 
 	w.Stats.Success += 1
 	return ev, nil
+}
+
+func datumToEventParam(datum types.Datum) interface{} {
+	/*
+		case KindMysqlDecimal:
+			return d.GetMysqlDecimal()
+		case KindMysqlDuration:
+			return d.GetMysqlDuration()
+		case KindMysqlEnum:
+			return d.GetMysqlEnum()
+		case KindBinaryLiteral, KindMysqlBit:
+			return d.GetBinaryLiteral()
+		case KindMysqlSet:
+			return d.GetMysqlSet()
+		case KindMysqlJSON:
+			return d.GetMysqlJSON()
+		case KindMysqlTime:
+			return d.GetMysqlTime()
+		default:
+			return d.GetInterface()
+	*/
+	switch value := datum.GetValue().(type) {
+	case *types.MyDecimal:
+		f, _ := value.ToFloat64()
+		return f
+	case *types.Duration:
+		return value.String()
+	case *types.Time:
+		return value.String()
+	default:
+		return value
+	}
 }
