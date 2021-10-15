@@ -58,15 +58,15 @@ func resizeInt64(i int64, tp *types.FieldType) int64 {
 func resizeUint64(i uint64, tp *types.FieldType) uint64 {
 	switch tp.Tp {
 	case mysql.TypeTiny:
-		return i % math.MaxUint8
+		return i % (math.MaxUint8 + 1)
 	case mysql.TypeShort:
-		return i % math.MaxUint16
+		return i % (math.MaxUint16 + 1)
 	case mysql.TypeInt24:
-		return i % mysql.MaxUint24
+		return i % (mysql.MaxUint24 + 1)
 	case mysql.TypeLong:
-		return i % math.MaxUint32
+		return i % (math.MaxUint32 + 1)
 	case mysql.TypeLonglong:
-		return i % math.MaxUint64
+		return i
 	default:
 		panic("unreachable")
 	}
