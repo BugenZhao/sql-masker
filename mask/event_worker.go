@@ -163,9 +163,9 @@ func datumToEventParam(datum types.Datum) interface{} {
 		f, _ := value.ToFloat64()
 		return f
 
-	case *types.Duration:
+	case types.Duration:
 		return value.String()
-	case *types.Time:
+	case types.Time:
 		return value.String()
 
 	default:
