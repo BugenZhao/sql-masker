@@ -10,13 +10,15 @@ import (
 
 	"github.com/BugenZhao/sql-masker/mask"
 	maskfuncs "github.com/BugenZhao/sql-masker/mask/funcs"
+	"github.com/Jeffail/tunny"
 	"github.com/zyguan/mysql-replay/event"
 	"go.uber.org/zap"
 )
 
 type EventOption struct {
-	InputDir  string `opts:""`
-	OutputDir string `opts:""`
+	Concurrency int    `opts:"help=goroutine concurrecy for masking,default=CPU nums"`
+	InputDir    string `opts:"help=directory to the original event tsvs"`
+	OutputDir   string `opts:"help=directory to the masked event tsvs"`
 }
 
 func (opt *EventOption) outPath(from string) string {
@@ -93,18 +95,24 @@ func (opt *EventOption) Run() error {
 	wg := new(sync.WaitGroup)
 	resultChan := make(chan TaskResult)
 
-	for _, path := range paths {
+	pool := tunny.NewFunc(opt.Concurrency, func(arg interface{}) interface{} {
+		path := arg.(string)
 		wg.Add(1)
-		go func(path string) {
-			defer wg.Done()
-			stats, err := opt.RunFile(path)
-			resultChan <- TaskResult{
-				from:  path,
-				to:    opt.outPath(path),
-				stats: stats,
-				err:   err,
-			}
-		}(path)
+		defer wg.Done()
+		stats, err := opt.RunFile(path)
+		resultChan <- TaskResult{
+			from:  path,
+			to:    opt.outPath(path),
+			stats: stats,
+			err:   err,
+		}
+		return nil
+	})
+	defer pool.Close()
+
+	zap.S().Infow("start masking events...")
+	for _, path := range paths {
+		go pool.Process(path)
 	}
 
 	go func() {

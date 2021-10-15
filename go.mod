@@ -16,6 +16,7 @@ require (
 	cloud.google.com/go v0.93.3 // indirect
 	cloud.google.com/go/storage v1.16.1 // indirect
 	github.com/BurntSushi/toml v0.3.1 // indirect
+	github.com/Jeffail/tunny v0.1.4
 	github.com/LianjiaTech/d18n v0.1.1
 	github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d // indirect
 	github.com/VividCortex/ewma v1.1.1 // indirect
