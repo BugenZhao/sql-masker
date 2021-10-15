@@ -10,7 +10,6 @@ require (
 	github.com/pingcap/tidb v1.1.0-beta.0.20211011083326-e8f4e47798d2
 	github.com/zyguan/mysql-replay v0.0.0-20211008084918-01715661643b
 	go.uber.org/zap v1.19.1
-	golang.org/x/crypto v0.0.0-20210503195802-e9a32991a82e
 )
 
 require (
@@ -122,6 +121,7 @@ require (
 	github.com/urfave/negroni v1.0.0 // indirect
 	github.com/wangjohn/quickselect v0.0.0-20161129230411-ed8402a42d5f // indirect
 	github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2 // indirect
+	github.com/zeebo/blake3 v0.2.1
 	go.etcd.io/bbolt v1.3.5 // indirect
 	go.etcd.io/etcd v0.5.0-alpha.5.0.20210512015243-d19fbe541bf9 // indirect
 	go.opencensus.io v0.23.0 // indirect
@@ -183,6 +183,7 @@ require (
 	github.com/wumansgy/goEncrypt v0.0.0-20201114063050-efa0a0601707 // indirect
 	github.com/xuri/efp v0.0.0-20210322160811-ab561f5b45e3 // indirect
 	github.com/zach-klippenstein/goregen v0.0.0-20160303162051-795b5e3961ea // indirect
+	golang.org/x/crypto v0.0.0-20210503195802-e9a32991a82e // indirect
 	golang.org/x/exp v0.0.0-20210220032938-85be41e4509f // indirect
 	golang.org/x/mod v0.4.2 // indirect
 	golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1 // indirect
