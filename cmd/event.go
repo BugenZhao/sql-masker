@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/BugenZhao/sql-masker/mask"
-	maskfuncs "github.com/BugenZhao/sql-masker/mask/funcs"
 	"github.com/Jeffail/tunny"
 	"github.com/zyguan/mysql-replay/event"
 	"go.uber.org/zap"
@@ -27,6 +26,8 @@ func (opt *EventOption) outPath(from string) string {
 }
 
 func (opt *EventOption) RunFile(path string) (*mask.Stats, error) {
+	maskFunc := globalOption.resolveMaskFunc()
+
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -38,7 +39,7 @@ func (opt *EventOption) RunFile(path string) (*mask.Stats, error) {
 	if err != nil {
 		return nil, err
 	}
-	masker := mask.NewEventWorker(db, maskfuncs.WorkloadSimMask)
+	masker := mask.NewEventWorker(db, maskFunc)
 
 	outPath := opt.outPath(file.Name())
 	if _, err := os.Stat(outPath); err == nil {

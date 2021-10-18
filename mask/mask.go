@@ -10,11 +10,12 @@ import (
 
 type MaskFunc = func(datum types.Datum, tp *types.FieldType) (types.Datum, *types.FieldType, error)
 
-var (
-	_ MaskFunc = funcs.IdenticalMask
-	_ MaskFunc = funcs.DebugMask
-	_ MaskFunc = funcs.WorkloadSimMask
-)
+var MaskFuncMap = map[string]MaskFunc{
+	"workload-sim": funcs.WorkloadSimMask,
+	"debug":        funcs.DebugMask,
+	"debug-color":  funcs.DebugMaskColor,
+	"identical":    funcs.IdenticalMask,
+}
 
 func ConvertAndMask(sc *stmtctx.StatementContext, datum types.Datum, toType *types.FieldType, maskFunc MaskFunc) (types.Datum, *types.FieldType, error) {
 	castedDatum, err := datum.ConvertTo(sc, toType)

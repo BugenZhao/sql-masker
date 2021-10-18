@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/BugenZhao/sql-masker/mask"
-	maskfuncs "github.com/BugenZhao/sql-masker/mask/funcs"
 	"github.com/fatih/color"
 )
 
@@ -13,12 +12,14 @@ type SQLOption struct {
 }
 
 func (opt *SQLOption) Run() error {
+	maskFunc := globalOption.resolveMaskFunc()
+
 	db, err := NewPreparedTiDBContext()
 	if err != nil {
 		return err
 	}
 
-	masker := mask.NewSQLWorker(db, maskfuncs.DebugMaskColor)
+	masker := mask.NewSQLWorker(db, maskFunc)
 	maskSQLs := make(chan string)
 	go ReadSQLs(maskSQLs, opt.File)
 	for sql := range maskSQLs {
