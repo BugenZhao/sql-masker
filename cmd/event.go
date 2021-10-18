@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/BugenZhao/sql-masker/mask"
 	maskfuncs "github.com/BugenZhao/sql-masker/mask/funcs"
@@ -96,9 +97,8 @@ func (opt *EventOption) Run() error {
 	resultChan := make(chan TaskResult)
 
 	pool := tunny.NewFunc(opt.Concurrency, func(arg interface{}) interface{} {
-		path := arg.(string)
-		wg.Add(1)
 		defer wg.Done()
+		path := arg.(string)
 		stats, err := opt.RunFile(path)
 		resultChan <- TaskResult{
 			from:  path,
@@ -112,11 +112,13 @@ func (opt *EventOption) Run() error {
 
 	zap.S().Infow("start masking events...")
 	for _, path := range paths {
+		wg.Add(1)
 		go pool.Process(path)
 	}
 
 	go func() {
 		wg.Wait()
+		time.Sleep(200 * time.Millisecond)
 		close(resultChan)
 	}()
 
