@@ -53,11 +53,7 @@ func newWorker(db *tidb.Context, maskFunc MaskFunc) *worker {
 	}
 }
 
-func (w *worker) replaceValue(sql string) (ast.StmtNode, ExprMap, error) {
-	node, err := w.db.ParseOne(sql)
-	if err != nil {
-		return nil, nil, err
-	}
+func (w *worker) replaceValue(node ast.StmtNode) (ast.StmtNode, ExprMap, error) {
 	v := NewReplaceVisitor(ReplaceModeValue)
 	newNode, _ := node.Accept(v)
 
@@ -138,8 +134,29 @@ func (w *worker) infer(stmtNode ast.StmtNode) (TypeMap, error) {
 	return inferredTypes, nil
 }
 
+func (w *worker) mayExecute(node ast.StmtNode) (bool, error) {
+	switch node := node.(type) {
+	case *ast.SetStmt:
+		_, err := w.db.ExecuteOneStmt(node)
+		return true, err
+
+	default:
+		return false, nil
+	}
+}
+
 func (w *worker) maskOneQuery(sql string) (string, error) {
-	replacedStmtNode, originExprs, err := w.replaceValue(sql)
+	node, err := w.db.ParseOne(sql)
+	if err != nil {
+		return sql, err
+	}
+
+	executed, err := w.mayExecute(node)
+	if executed {
+		return sql, err
+	}
+
+	replacedStmtNode, originExprs, err := w.replaceValue(node)
 	if err != nil {
 		return sql, err
 	}

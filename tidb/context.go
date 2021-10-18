@@ -32,6 +32,10 @@ func (db *Context) ParseOne(sql string) (ast.StmtNode, error) {
 	return stmts[0], nil
 }
 
+func (db *Context) ExecuteOneStmt(stmt ast.StmtNode) (server.ResultSet, error) {
+	return db.qctx.ExecuteStmt(db.ctx, stmt)
+}
+
 func (db *Context) ExecuteOne(sql string) (server.ResultSet, error) {
 	stmt, err := db.ParseOne(sql)
 	if err != nil {
