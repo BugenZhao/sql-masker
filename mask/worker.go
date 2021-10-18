@@ -136,7 +136,7 @@ func (w *worker) infer(stmtNode ast.StmtNode) (TypeMap, error) {
 
 func (w *worker) mayExecute(node ast.StmtNode) (bool, error) {
 	switch node := node.(type) {
-	case *ast.SetStmt:
+	case *ast.SetStmt, ast.DDLNode:
 		_, err := w.db.ExecuteOneStmt(node)
 		return true, err
 
@@ -151,9 +151,13 @@ func (w *worker) maskOneQuery(sql string) (string, error) {
 		return "", err
 	}
 
-	executed, err := w.mayExecute(node)
+	executed, err := w.mayExecute(node) // todo: add a flag
 	if executed {
-		return sql, err
+		if err != nil {
+			return "", fmt.Errorf("error when trying to execute `%s`; %w", sql, err)
+		} else {
+			return sql, nil
+		}
 	}
 
 	replacedStmtNode, originExprs, err := w.replaceValue(node)
