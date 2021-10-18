@@ -16,11 +16,13 @@ func (w *SQLWorker) MaskOne(sql string) (string, error) {
 	w.Stats.All += 1
 
 	newSQL, err := w.maskOneQuery(sql)
-	if err == nil {
-		w.Stats.Success += 1
-	} else if newSQL != sql {
-		w.Stats.Problematic += 1
+	if err != nil {
+		if newSQL != "" { // problematic
+			w.Stats.Problematic += 1
+		}
+		return newSQL, err
 	}
 
-	return newSQL, err
+	w.Stats.Success += 1
+	return newSQL, nil
 }

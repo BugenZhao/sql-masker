@@ -26,11 +26,11 @@ func (opt *SQLOption) Run() error {
 		fmt.Printf("\n-> %s\n", sql)
 		newSQL, err := masker.MaskOne(sql)
 		if err != nil {
-			if newSQL == "" || newSQL == sql {
+			if newSQL != "" { // problematic
+				color.Yellow("?> %v\n", err)
+			} else {
 				color.Red("!> %v\n", err)
 				continue
-			} else {
-				color.Yellow("?> %v\n", err)
 			}
 		}
 		fmt.Printf("=> %s\n", newSQL)

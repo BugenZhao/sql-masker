@@ -148,7 +148,7 @@ func (w *worker) mayExecute(node ast.StmtNode) (bool, error) {
 func (w *worker) maskOneQuery(sql string) (string, error) {
 	node, err := w.db.ParseOne(sql)
 	if err != nil {
-		return sql, err
+		return "", err
 	}
 
 	executed, err := w.mayExecute(node)
@@ -158,22 +158,18 @@ func (w *worker) maskOneQuery(sql string) (string, error) {
 
 	replacedStmtNode, originExprs, err := w.replaceValue(node)
 	if err != nil {
-		return sql, err
+		return "", err
 	}
 
 	inferredTypes, err := w.infer(replacedStmtNode)
 	if err != nil {
-		return sql, err
+		return "", err
 	}
 
 	newSQL, err := w.restore(replacedStmtNode, originExprs, inferredTypes)
-	if err != nil {
-		if newSQL == "" {
-			return sql, err
-		} else {
-			return newSQL, err
-		}
+	if err != nil && newSQL != "" { // problematic
+		newSQL = fmt.Sprintf("/* PROBLEMATIC: %v */ %s", err, newSQL)
 	}
 
-	return newSQL, nil
+	return newSQL, err
 }

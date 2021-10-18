@@ -105,8 +105,10 @@ func (w *EventWorker) MaskOne(ev event.MySQLEvent) (event.MySQLEvent, error) {
 	case event.EventQuery:
 		maskedQuery, err := w.maskOneQuery(ev.Query)
 		if err != nil {
-			if maskedQuery != ev.Query {
+			if maskedQuery != "" { // problematic
+				ev.Query = maskedQuery
 				w.Stats.Problematic += 1
+				return ev, nil
 			}
 			return ev, err
 		}
