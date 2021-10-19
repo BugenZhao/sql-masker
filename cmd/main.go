@@ -16,6 +16,5 @@ func initLogger() {
 	config.Encoding = "console"
 	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 	logger, _ := config.Build()
-	defer logger.Sync()
 	zap.ReplaceGlobals(logger)
 }

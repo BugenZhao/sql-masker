@@ -167,7 +167,7 @@ func (b *CastGraphBuilder) Build(plan plannercore.Plan) error {
 	case *plannercore.Insert:
 		b.visitInsert(*plan)
 	case *plannercore.Execute:
-		b.Build(plan.Plan)
+		_ = b.Build(plan.Plan)
 	case *plannercore.Simple:
 	default:
 		return fmt.Errorf("unrecognized plan `%T` :(", plan)

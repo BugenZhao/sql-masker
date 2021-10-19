@@ -44,12 +44,12 @@ func hashBytes(data interface{}, size int) []byte {
 		bs = data
 	default:
 		buf := new(bytes.Buffer)
-		binary.Write(buf, binary.LittleEndian, data)
+		_ = binary.Write(buf, binary.LittleEndian, data)
 		bs = buf.Bytes()
 	}
 
 	hasher := newHasher()
-	hasher.Write(bs)
+	_, _ = hasher.Write(bs)
 
 	sum := make([]byte, size)
 	n, err := hasher.Digest().Read(sum)

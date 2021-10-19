@@ -25,7 +25,10 @@ func NewInstance() (*Instance, error) {
 		return nil, err
 	}
 	session.DisableStats4Test()
-	session.BootstrapSession(storage)
+	_, err = session.BootstrapSession(storage)
+	if err != nil {
+		return nil, err
+	}
 	driver := server.NewTiDBDriver(storage)
 
 	ctx := context.Background()

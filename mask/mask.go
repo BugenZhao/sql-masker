@@ -31,5 +31,5 @@ func ConvertAndMask(sc *stmtctx.StatementContext, datum types.Datum, toType *typ
 	if maskedType == nil {
 		maskedType = toType
 	}
-	return maskedDatum, toType, nil
+	return maskedDatum, maskedType, nil
 }
