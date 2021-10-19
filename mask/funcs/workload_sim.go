@@ -8,10 +8,12 @@ import (
 	"math"
 	"strconv"
 	"strings"
+	gotime "time"
 
 	lj "github.com/LianjiaTech/d18n/mask"
 	"github.com/pingcap/parser/mysql"
 	"github.com/pingcap/tidb/types"
+	"github.com/pingcap/tidb/util/mock"
 	"github.com/zeebo/blake3"
 )
 
@@ -31,6 +33,8 @@ TypeDate        byte = 10
 const (
 	defaultContext = "tidb"
 )
+
+var maskStmtCtx = mock.NewContext().GetSessionVars().StmtCtx
 
 func newHasher() *blake3.Hasher {
 	hasher := blake3.NewDeriveKey(defaultContext)
@@ -107,14 +111,14 @@ func hashFloat64(f float64) float64 {
 	return math.Float64frombits(u)
 }
 
-// todo: this is NOT PURE
-// func maskFloat64(f float64) float64 {
-// 	s, _ := lj.LaplaceDPFloat64(f, 100, 1, 1, 0)
-// 	f, _ = strconv.ParseFloat(s, 64)
-// 	return f
-// }
+// todo: this is NOT PURE, unused
+func maskFloat64Laplace(f float64) float64 {
+	s, _ := lj.LaplaceDPFloat64(f, 100, 1, 1, 0)
+	f, _ = strconv.ParseFloat(s, 64)
+	return f
+}
 
-// todo: same as hashFloat64, really a bad job
+// todo: same as hashFloat64, really a bad job, unused
 func hashDecimal(d *types.MyDecimal) (*types.MyDecimal, error) {
 	prec, frac := d.PrecisionAndFrac()
 	f, err := d.ToFloat64()
@@ -170,9 +174,20 @@ func maskString(s []byte) string {
 	return hex
 }
 
-func maskTime(t types.Time) string {
-	rounded, _ := lj.DateRound(t.String(), "day")
-	return rounded
+func maskDuration(d types.Duration) types.Duration {
+	secs := int64(d.Duration.Seconds()) / 3600 * 3600
+	d.Duration = gotime.Duration(secs) * gotime.Second
+	return d
+}
+
+func maskTime(t types.Time) (types.Time, error) {
+	year := t.Year()
+	month := t.Month()
+	day := t.Day()
+	fsp := t.Fsp()
+	tp := t.Type()
+
+	return types.ParseTime(maskStmtCtx, fmt.Sprintf("%v-%v-%v", year, month, day), tp, fsp)
 }
 
 func WorkloadSimMask(datum types.Datum, tp *types.FieldType) (types.Datum, *types.FieldType, error) {
@@ -195,11 +210,6 @@ func WorkloadSimMask(datum types.Datum, tp *types.FieldType) (types.Datum, *type
 		datum.SetFloat32(f)
 		return datum, tp, nil
 
-	case types.KindMysqlDecimal:
-		d := datum.GetMysqlDecimal()
-		_, err := hashDecimal(d)
-		return datum, tp, err
-
 	case types.KindString:
 		s := maskString([]byte(datum.GetString()))
 		datum.SetString(s, datum.Collation())
@@ -210,10 +220,24 @@ func WorkloadSimMask(datum types.Datum, tp *types.FieldType) (types.Datum, *type
 		datum.SetBytes([]byte(s))
 		return datum, tp, nil
 
-	// it's ok to return a string, since all non-numeric types will be converted to string when serializing text events
+	case types.KindMysqlEnum:
+		e := datum.GetMysqlEnum()
+		e.Name = maskString([]byte(e.Name))
+		datum.SetMysqlEnum(e, datum.Collation())
+		return datum, tp, nil
+
+	case types.KindMysqlDuration:
+		d := maskDuration(datum.GetMysqlDuration())
+		datum.SetMysqlDuration(d)
+		return datum, tp, nil
+
 	case types.KindMysqlTime:
-		ds := maskTime(datum.GetMysqlTime())
-		return types.NewDatum(ds), stringTp, nil
+		t, err := maskTime(datum.GetMysqlTime())
+		if err != nil {
+			return datum, tp, err
+		}
+		datum.SetMysqlTime(t)
+		return datum, tp, nil
 
 	default:
 		return datum, tp, fmt.Errorf("unimplemented for type `%v`", tp)
@@ -241,3 +265,8 @@ KindMaxValue      byte = 16
 KindRaw           byte = 17
 KindMysqlJSON     byte = 18
 */
+
+var (
+	_ = maskFloat64Laplace
+	_ = hashDecimal
+)
