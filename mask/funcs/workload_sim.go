@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	lj "github.com/LianjiaTech/d18n/mask"
-	"github.com/pingcap/parser/charset"
 	"github.com/pingcap/parser/mysql"
 	"github.com/pingcap/tidb/types"
 	"github.com/zeebo/blake3"
@@ -36,40 +35,6 @@ const (
 func newHasher() *blake3.Hasher {
 	hasher := blake3.NewDeriveKey(defaultContext)
 	return hasher
-}
-
-func resizeInt64(i int64, tp *types.FieldType) int64 {
-	switch tp.Tp {
-	case mysql.TypeTiny:
-		return i % (math.MaxInt8 + 1)
-	case mysql.TypeShort:
-		return i % (math.MaxInt16 + 1)
-	case mysql.TypeInt24:
-		return i % (mysql.MaxInt24 + 1)
-	case mysql.TypeLong:
-		return i % (math.MaxInt32 + 1)
-	case mysql.TypeLonglong:
-		return i
-	default:
-		panic("unreachable")
-	}
-}
-
-func resizeUint64(i uint64, tp *types.FieldType) uint64 {
-	switch tp.Tp {
-	case mysql.TypeTiny:
-		return i % (math.MaxUint8 + 1)
-	case mysql.TypeShort:
-		return i % (math.MaxUint16 + 1)
-	case mysql.TypeInt24:
-		return i % (mysql.MaxUint24 + 1)
-	case mysql.TypeLong:
-		return i % (math.MaxUint32 + 1)
-	case mysql.TypeLonglong:
-		return i
-	default:
-		panic("unreachable")
-	}
 }
 
 func hashBytes(data interface{}, size int) []byte {
@@ -102,6 +67,38 @@ func hashUint64(data interface{}) uint64 {
 	sum := hashBytes(data, 8)
 	u := binary.LittleEndian.Uint64(sum)
 	return u
+}
+
+func maskUint64(from uint64) uint64 {
+	to := binary.LittleEndian.Uint64(hashBytes(from, 8))
+
+	if from <= math.MaxUint8 {
+		return to % (math.MaxUint8 + 1)
+	} else if from <= math.MaxUint16 {
+		return to % (math.MaxUint16 + 1)
+	} else if from <= mysql.MaxUint24 {
+		return to % (mysql.MaxUint24 + 1)
+	} else if from <= math.MaxUint32 {
+		return to % (math.MaxUint32 + 1)
+	} else {
+		return to
+	}
+}
+
+func maskInt64(from int64) int64 {
+	to := int64(binary.LittleEndian.Uint64(hashBytes(from, 8)))
+
+	if from <= math.MaxInt8 && from >= math.MinInt8 {
+		return to % (math.MaxInt8 + 1)
+	} else if from <= math.MaxInt16 && from >= math.MinInt16 {
+		return to % (math.MaxInt16 + 1)
+	} else if from <= mysql.MaxInt24 && from >= mysql.MinInt24 {
+		return to % (mysql.MaxInt24 + 1)
+	} else if from <= math.MaxInt32 && from >= math.MinInt32 {
+		return to % (math.MaxInt32 + 1)
+	} else {
+		return to
+	}
 }
 
 // todo: this is almost nonsense since it often leads to unreasonable exponent
@@ -164,7 +161,7 @@ func hashDecimal(d *types.MyDecimal) (*types.MyDecimal, error) {
 	return d, nil
 }
 
-func hashString(s []byte) string {
+func maskString(s []byte) string {
 	size := len(s)
 
 	sum := hashBytes([]byte(s), size/2)
@@ -181,13 +178,11 @@ func maskTime(t types.Time) string {
 func WorkloadSimMask(datum types.Datum, tp *types.FieldType) (types.Datum, *types.FieldType, error) {
 	switch datum.Kind() {
 	case types.KindInt64:
-		u := hashUint64(datum.GetInt64())
-		datum.SetInt64(resizeInt64(int64(u), tp))
+		datum.SetInt64(maskInt64(datum.GetInt64()))
 		return datum, tp, nil
 
 	case types.KindUint64:
-		u := hashUint64(datum.GetUint64())
-		datum.SetUint64(resizeUint64(u, tp))
+		datum.SetUint64(maskUint64(datum.GetUint64()))
 		return datum, tp, nil
 
 	case types.KindFloat64:
@@ -206,14 +201,14 @@ func WorkloadSimMask(datum types.Datum, tp *types.FieldType) (types.Datum, *type
 		return datum, tp, err
 
 	case types.KindString:
-		s := hashString([]byte(datum.GetString()))
+		s := maskString([]byte(datum.GetString()))
 		datum.SetString(s, datum.Collation())
 		return datum, tp, nil
 
 	case types.KindBytes:
-		s := hashString(datum.GetBytes())
-		datum.SetString(s, charset.CollationBin)
-		return datum, stringTp, nil
+		s := maskString(datum.GetBytes())
+		datum.SetBytes([]byte(s))
+		return datum, tp, nil
 
 	// it's ok to return a string, since all non-numeric types will be converted to string when serializing text events
 	case types.KindMysqlTime:
