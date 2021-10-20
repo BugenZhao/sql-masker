@@ -8,13 +8,16 @@ import (
 	"github.com/pingcap/tidb/types"
 )
 
-type MaskFunc = func(datum types.Datum, tp *types.FieldType) (types.Datum, *types.FieldType, error)
+type MaskFunc struct {
+	Description string
+	fn          func(datum types.Datum, tp *types.FieldType) (types.Datum, *types.FieldType, error)
+}
 
 var MaskFuncMap = map[string]MaskFunc{
-	"workload-sim": funcs.WorkloadSimMask,
-	"debug":        funcs.DebugMask,
-	"debug-color":  funcs.DebugMaskColor,
-	"identical":    funcs.IdenticalMask,
+	"workload-sim": {"For workload simulation project", funcs.WorkloadSimMask},
+	"debug":        {"Replace every constant with its inferred type, for debug usage", funcs.DebugMask},
+	"debug-color":  {"Like `debug`, but in ANSI color", funcs.DebugMaskColor},
+	"identical":    {"Dry-run baseline", funcs.IdenticalMask},
 }
 
 func ConvertAndMask(sc *stmtctx.StatementContext, datum types.Datum, toType *types.FieldType, maskFunc MaskFunc) (types.Datum, *types.FieldType, error) {
@@ -23,7 +26,7 @@ func ConvertAndMask(sc *stmtctx.StatementContext, datum types.Datum, toType *typ
 		return datum, nil, fmt.Errorf("cannot cast `%v` to type `%v`; %w", datum, toType, err)
 	}
 
-	maskedDatum, maskedType, err := maskFunc(*castedDatum.Clone(), toType)
+	maskedDatum, maskedType, err := maskFunc.fn(*castedDatum.Clone(), toType)
 	if err != nil {
 		return castedDatum, toType, fmt.Errorf("failed to mask `%v`; %w", castedDatum, err)
 	}

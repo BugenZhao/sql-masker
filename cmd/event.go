@@ -16,7 +16,7 @@ import (
 )
 
 type EventOption struct {
-	Concurrency int    `opts:"short=t, help=goroutine concurrecy for masking, default=CPU nums"`
+	Concurrency int    `opts:"short=t, help=goroutine concurrency for masking, default=CPU nums"`
 	InputDir    string `opts:"help=directory to the original event tsvs"`
 	OutputDir   string `opts:"help=directory to the masked event tsvs"`
 }

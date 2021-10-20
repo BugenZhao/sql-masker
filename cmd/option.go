@@ -11,6 +11,7 @@ import (
 type Option struct {
 	SQLOption            `opts:"mode=cmd, name=sql,   help=Mask SQL queries"`
 	EventOption          `opts:"mode=cmd, name=event, help=Mask MySQL events"`
+	ListOption           `opts:"mode=cmd, name=list, help=List all mask functions"`
 	DDLDir               []string `opts:"help=directories to DDL SQL files executed only once"`
 	PrepareDir           []string `opts:"help=directories to SQL files executed per session"`
 	DB                   string   `opts:"help=default database to use"`
