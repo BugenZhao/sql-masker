@@ -126,6 +126,8 @@ func (opt *EventOption) Run() error {
 
 	i := 1
 	all := len(paths)
+	stats := mask.Stats{}
+	startTime := time.Now()
 	for result := range resultChan {
 		progress := fmt.Sprintf("%d/%d", i, all)
 		if result.err != nil {
@@ -134,8 +136,9 @@ func (opt *EventOption) Run() error {
 			zap.S().Infow("mask done", "progress", progress, "from", result.from, "to", result.to, "stats", result.stats.String())
 		}
 		i += 1
+		stats.Merge(*result.stats)
 	}
 
-	zap.S().Infow("all done")
+	zap.S().Infow("all done", "files", all, "stats", stats, "time", time.Since(startTime).String())
 	return nil
 }

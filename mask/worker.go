@@ -20,6 +20,12 @@ type Stats struct {
 	Success     uint64
 }
 
+func (s *Stats) Merge(other Stats) {
+	s.All += other.All
+	s.Problematic += other.Problematic
+	s.Success += other.Success
+}
+
 func (s Stats) String() string {
 	return fmt.Sprintf("all %d, success %d, problematic %d, failed %d", s.All, s.Success, s.Problematic, s.Failed())
 }
