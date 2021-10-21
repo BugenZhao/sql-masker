@@ -17,6 +17,7 @@ type Option struct {
 	DB                   string   `opts:"help=default database to use"`
 	FilterOutConstraints bool     `opts:"help=whether to filter out table constraints for DDL for better type inference"`
 	Mask                 string   `opts:"help=name of the mask function"`
+	Verbose              bool     `opts:"help=whether to print warnings for failed entry"`
 }
 
 var globalOption = &Option{

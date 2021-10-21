@@ -3,6 +3,7 @@ package mask
 import (
 	"fmt"
 
+	"github.com/pingcap/parser/ast"
 	"github.com/pingcap/tidb/expression"
 	"github.com/pingcap/tidb/kv"
 	plannercore "github.com/pingcap/tidb/planner/core"
@@ -211,7 +212,7 @@ func (v *CastGraphBuilder) visitExpr(exprs ...Expr) {
 		switch e := expr.(type) {
 		case *expression.ScalarFunction:
 			args := e.GetArgs()
-			if e.FuncName.L == "cast" {
+			if e.FuncName.L == ast.Cast {
 				v.Graph.Add(args[0], expr)
 			} else if len(args) == 2 {
 				left, right := args[0], args[1]

@@ -27,10 +27,22 @@ func (m ReplaceMarker) IntValue() int64 {
 	return int64(m)
 }
 
+func isCountOne(in *ast.AggregateFuncExpr) bool {
+	if in.F == ast.AggFuncCount && len(in.Args) == 1 {
+		arg := in.Args[0]
+		if expr, ok := arg.(*driver.ValueExpr); ok {
+			return expr.Datum.GetInt64() == 1 && expr.Datum.Kind() == types.KindInt64
+		}
+	}
+	return false
+}
+
 func enterMayIgnoreSubtree(in ast.Node) (node ast.Node, skipChilren bool) {
-	switch in.(type) {
+	switch in := in.(type) {
 	case *ast.Limit:
 		return in, true
+	case *ast.AggregateFuncExpr:
+		return in, isCountOne(in)
 	default:
 		return in, false
 	}
