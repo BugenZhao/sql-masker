@@ -27,6 +27,15 @@ func (m ReplaceMarker) IntValue() int64 {
 	return int64(m)
 }
 
+func enterMayIgnoreSubtree(in ast.Node) (node ast.Node, skipChilren bool) {
+	switch in.(type) {
+	case *ast.Limit:
+		return in, true
+	default:
+		return in, false
+	}
+}
+
 func NewReplaceVisitor(mode ReplaceMode) *ReplaceVisitor {
 	return &ReplaceVisitor{
 		mode:        mode,
@@ -50,7 +59,7 @@ func (v *ReplaceVisitor) nextMarker() ReplaceMarker {
 }
 
 func (v *ReplaceVisitor) Enter(in ast.Node) (node ast.Node, skipChilren bool) {
-	return in, false
+	return enterMayIgnoreSubtree(in)
 }
 
 func (v *ReplaceVisitor) Leave(in ast.Node) (node ast.Node, ok bool) {
@@ -110,7 +119,7 @@ func (v *RestoreVisitor) appendError(err error) {
 }
 
 func (v *RestoreVisitor) Enter(in ast.Node) (_ ast.Node, skipChilren bool) {
-	return in, false
+	return enterMayIgnoreSubtree(in)
 }
 
 func (v *RestoreVisitor) Leave(in ast.Node) (_ ast.Node, ok bool) {
