@@ -197,6 +197,10 @@ func (v *CastGraphBuilder) visitPhysicalPlan(plans ...plannercore.PhysicalPlan) 
 		case *plannercore.BatchPointGetPlan:
 			v.visitExpr(p.AccessConditions...)
 			v.Handles = append(v.Handles, p.Handles...)
+		case *plannercore.PhysicalStreamAgg:
+			v.visitExpr(p.GroupByItems...)
+		case *plannercore.PhysicalHashAgg:
+			v.visitExpr(p.GroupByItems...)
 		default:
 		}
 	}

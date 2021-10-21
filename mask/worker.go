@@ -80,7 +80,7 @@ func (w *worker) replaceParamMarker(sql string) (ast.StmtNode, []ReplaceMarker, 
 func (w *worker) restore(stmtNode ast.StmtNode, originExprs ExprMap, inferredTypes TypeMap) (string, error) {
 	v := NewRestoreVisitor(originExprs, inferredTypes, w.maskFunc)
 	newNode, ok := stmtNode.Accept(v)
-	if !ok {
+	if !ok || (v.success == 0 && len(originExprs) > 0) {
 		return "", v.err
 	}
 

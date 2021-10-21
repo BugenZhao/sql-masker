@@ -94,11 +94,12 @@ func NewRestoreVisitor(originExprs ExprMap, inferredTypes TypeMap, maskFunc Mask
 	sc.IgnoreTruncate = true // todo: what's this ?
 
 	return &RestoreVisitor{
-		originExprs,
-		inferredTypes,
-		&sc,
-		maskFunc,
-		nil,
+		originExprs:   originExprs,
+		inferredTypes: inferredTypes,
+		stmtContext:   &sc,
+		maskFunc:      maskFunc,
+		success:       0,
+		err:           nil,
 	}
 }
 
@@ -107,6 +108,7 @@ type RestoreVisitor struct {
 	inferredTypes TypeMap
 	stmtContext   *stmtctx.StatementContext
 	maskFunc      MaskFunc
+	success       int
 	err           error
 }
 
@@ -132,16 +134,16 @@ func (v *RestoreVisitor) Leave(in ast.Node) (_ ast.Node, ok bool) {
 		}
 		inferredType, ok := v.inferredTypes[m]
 		if !ok {
-			// DIRTY HACK: handle `a + b`
-			guessI := m*2 + replaceMarkerStep
-			guessedType, ok := v.inferredTypes[guessI]
-			if ok {
-				v.appendError(fmt.Errorf("type for `%v` is guessed", originExpr.Datum))
-				inferredType = guessedType
-			} else {
-				v.appendError(fmt.Errorf("type for `%v` not inferred", originExpr.Datum))
-				return originExpr, true
-			}
+			// // DIRTY HACK: handle `a + b`
+			// guessI := m*2 + replaceMarkerStep
+			// guessedType, ok := v.inferredTypes[guessI]
+			// if ok {
+			// 	v.appendError(fmt.Errorf("type for `%v` is guessed", originExpr.Datum))
+			// 	inferredType = guessedType
+			// } else {
+			v.appendError(fmt.Errorf("type for `%v` not inferred", originExpr.Datum))
+			return originExpr, true
+			// }
 		}
 
 		maskedDatum, maskedType, err := ConvertAndMask(v.stmtContext, originExpr.Datum, inferredType, v.maskFunc)
@@ -152,6 +154,7 @@ func (v *RestoreVisitor) Leave(in ast.Node) (_ ast.Node, ok bool) {
 
 		restoredExpr := ast.NewValueExpr(maskedDatum.GetValue(), "", "")
 		restoredExpr.SetType(maskedType)
+		v.success += 1
 		return restoredExpr, true
 	}
 	return in, true

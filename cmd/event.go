@@ -65,7 +65,6 @@ func (opt *EventOption) RunFile(path string) (*mask.Stats, error) {
 		mev, err := masker.MaskOne(ev)
 		if err != nil {
 			zap.S().Warnw("failed to mask event", "original", strings.ReplaceAll(text, "\t", " "), "error", err)
-			mev = ev
 		}
 
 		maskedLine := []byte{}

@@ -107,8 +107,10 @@ func (w *EventWorker) MaskOne(ev event.MySQLEvent) (event.MySQLEvent, error) {
 		if err != nil {
 			if maskedQuery != "" { // problematic
 				ev.Query = maskedQuery
+				err = nil
 				w.Stats.Problematic += 1
-				return ev, nil
+			} else {
+				ev.Query = fmt.Sprintf("/* FAILED: %v */ %s", err, ev.Query)
 			}
 			return ev, err
 		}
