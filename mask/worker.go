@@ -9,8 +9,6 @@ import (
 	"github.com/BugenZhao/sql-masker/tidb"
 	"github.com/pingcap/parser/ast"
 	"github.com/pingcap/parser/format"
-	"github.com/pingcap/parser/mysql"
-	ptypes "github.com/pingcap/parser/types"
 	"github.com/pingcap/tidb/kv"
 )
 
@@ -131,7 +129,7 @@ func (w *worker) infer(stmtNode ast.StmtNode) (TypeMap, error) {
 	for _, h := range b.Handles {
 		switch h := h.(type) {
 		case kv.IntHandle:
-			inferredTypes[ReplaceMarker(h.IntValue())] = ptypes.NewFieldType(mysql.TypeLong) // todo: which tp ?
+			inferredTypes[ReplaceMarker(h.IntValue())] = NewIntHandleInferredType()
 		default:
 			// ignore common handle for clustered index
 		}

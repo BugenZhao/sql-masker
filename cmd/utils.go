@@ -9,6 +9,8 @@ import (
 	"github.com/BugenZhao/sql-masker/mask"
 	"github.com/BugenZhao/sql-masker/tidb"
 	"github.com/pingcap/parser/ast"
+	"github.com/pingcap/parser/types"
+	"github.com/pingcap/tidb/util/set"
 )
 
 type TaskResult struct {
@@ -47,8 +49,31 @@ var (
 
 func filterOutConstraints(s ast.StmtNode) ast.StmtNode {
 	if s, ok := s.(*ast.CreateTableStmt); ok {
-		s.Constraints = []*ast.Constraint{}
+		// s.Constraints = []*ast.Constraint{}
 		// todo: check whether required to filter out column options like `primary key`, since we may be able to handle it ?
+
+		intColSet := set.NewStringSet()
+		for _, col := range s.Cols {
+			if col.Tp.EvalType() == types.ETInt {
+				intColSet.Insert(col.Name.Name.L)
+			}
+		}
+
+		cs := []*ast.Constraint{}
+		for _, c := range s.Constraints {
+			switch c.Tp {
+			case ast.ConstraintPrimaryKey: // only keep primary key with single int
+				if len(c.Keys) != 1 {
+					continue
+				}
+				key := c.Keys[0]
+				if intColSet.Exist(key.Column.Name.L) {
+					cs = append(cs, c)
+				}
+			default:
+			}
+		}
+		s.Constraints = cs
 
 		// for _, col := range s.Cols {
 		// 	options := []*ast.ColumnOption{}

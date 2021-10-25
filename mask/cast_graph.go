@@ -7,7 +7,6 @@ import (
 	"github.com/pingcap/tidb/expression"
 	"github.com/pingcap/tidb/kv"
 	plannercore "github.com/pingcap/tidb/planner/core"
-	"github.com/pingcap/tidb/types"
 )
 
 type Expr = expression.Expression
@@ -24,8 +23,8 @@ var _ Node = NormalNode{}
 
 type CastNode struct {
 	Node
-	left  *types.FieldType
-	right *types.FieldType
+	left  *InferredType
+	right *InferredType
 }
 
 type NormalNode struct {
@@ -47,7 +46,7 @@ func (g *CastGraph) Add(a Expr, b Expr) bool {
 				t1 := e.GetArgs()[0].GetType()
 				t2 := e.GetType()
 				return CastNode{
-					left: t1, right: t2,
+					left: NewInferredType(t1), right: NewInferredType(t2),
 				}
 			}
 		}
@@ -63,27 +62,27 @@ func (g *CastGraph) add(a Node, b Node) {
 	g.Adj[b] = append(g.Adj[b], a)
 }
 
-func (g *CastGraph) doInfer(u Node, currType *types.FieldType, visited map[Node]bool) []*types.FieldType {
+func (g *CastGraph) doInfer(u Node, currType *InferredType, visited map[Node]bool) []*InferredType {
 	visited[u] = true
 	defer func() { visited[u] = false }()
 
-	possibleTypes := []*types.FieldType{}
+	possibleTypes := []*InferredType{}
 	for _, v := range g.Adj[u] {
 		if visited[v] {
 			continue
 		}
 		switch v := v.(type) {
 		case CastNode:
-			if currType.EvalType() == v.left.EvalType() {
+			if currType.Ft.EvalType() == v.left.Ft.EvalType() {
 				possibleTypes = append(possibleTypes, g.doInfer(v, v.right, visited)...)
-			} else if currType.EvalType() == v.right.EvalType() {
+			} else if currType.Ft.EvalType() == v.right.Ft.EvalType() {
 				possibleTypes = append(possibleTypes, g.doInfer(v, v.left, visited)...)
 			}
 		case NormalNode:
-			if currType.EvalType() == v.expr.GetType().EvalType() {
-				possibleTypes = append(possibleTypes, v.expr.GetType())
+			if currType.Ft.EvalType() == v.expr.GetType().EvalType() {
+				possibleTypes = append(possibleTypes, NewInferredType(v.expr.GetType()))
 			} else if column, ok := v.expr.(*expression.Column); ok {
-				possibleTypes = append(possibleTypes, column.GetType())
+				possibleTypes = append(possibleTypes, NewInferredType(column.GetType()))
 			}
 		default:
 		}
@@ -95,12 +94,12 @@ func (g *CastGraph) doInfer(u Node, currType *types.FieldType, visited map[Node]
 	return possibleTypes
 }
 
-func (g *CastGraph) InferType(c *expression.Constant) *types.FieldType {
+func (g *CastGraph) InferType(c *expression.Constant) *InferredType {
 	u := NormalNode{expr: c}
 	t := c.GetType()
 	visited := make(map[Node]bool)
 
-	possibleTypes := g.doInfer(u, t, visited)
+	possibleTypes := g.doInfer(u, NewInferredType(t), visited)
 	return possibleTypes[0]
 }
 

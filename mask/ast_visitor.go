@@ -4,15 +4,36 @@ import (
 	"fmt"
 
 	"github.com/pingcap/parser/ast"
+	"github.com/pingcap/parser/mysql"
 	"github.com/pingcap/tidb/sessionctx/stmtctx"
 	"github.com/pingcap/tidb/types"
 	driver "github.com/pingcap/tidb/types/parser_driver"
 )
 
+type InferredType struct {
+	Ft *types.FieldType
+}
+
+func NewIntHandleInferredType() *InferredType {
+	ft := types.NewFieldType(mysql.TypeLonglong) // todo: is this type ok?
+	ft.Flag |= mysql.PriKeyFlag
+	return NewInferredType(ft)
+}
+
+func NewInferredType(ft *types.FieldType) *InferredType {
+	return &InferredType{
+		ft,
+	}
+}
+
+func (it InferredType) IsPrimaryKey() bool {
+	return mysql.HasPriKeyFlag(it.Ft.Flag)
+}
+
 type ReplaceMarker int64
 type ExprMap = map[ReplaceMarker]*driver.ValueExpr
 type ExprOffsetMap = map[ReplaceMarker]int
-type TypeMap = map[ReplaceMarker]*types.FieldType
+type TypeMap = map[ReplaceMarker]*InferredType
 
 type ReplaceMode int
 
@@ -158,7 +179,16 @@ func (v *RestoreVisitor) Leave(in ast.Node) (_ ast.Node, ok bool) {
 			// }
 		}
 
-		maskedDatum, maskedType, err := ConvertAndMask(v.stmtContext, originExpr.Datum, inferredType, v.maskFunc)
+		var maskedDatum types.Datum
+		var maskedType *types.FieldType
+		var err error
+
+		if inferredType.IsPrimaryKey() { // todo: add flag for ignoring primary key masking
+			maskedDatum, maskedType = originExpr.Datum, &originExpr.Type
+		} else {
+			maskedDatum, maskedType, err = ConvertAndMask(v.stmtContext, originExpr.Datum, inferredType.Ft, v.maskFunc)
+		}
+
 		if err != nil {
 			v.appendError(err)
 			return originExpr, false

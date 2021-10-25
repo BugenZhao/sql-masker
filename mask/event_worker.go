@@ -70,22 +70,25 @@ func (w *EventWorker) MaskOneExecute(stmtID uint64, params []interface{}) ([]int
 			marker - 1,
 		}
 
-		var tp *types.FieldType
+		var tp *InferredType
 		for _, marker := range possibleMarkers {
 			tp, ok = p.typeMap[marker]
 			if ok {
 				break
 			}
 		}
-		if tp == nil {
+		if tp.Ft == nil {
 			err = fmt.Errorf("type for `%v` not inferred; %w", originDatum, err)
 			maskedParams = append(maskedParams, originDatum)
 			continue
 		}
 
-		maskedDatum, _, err := ConvertAndMask(sc, originDatum, tp, w.maskFunc)
-		if err != nil {
-			return params, err
+		maskedDatum := originDatum
+		if !tp.IsPrimaryKey() {
+			maskedDatum, _, err = ConvertAndMask(sc, originDatum, tp.Ft, w.maskFunc)
+			if err != nil {
+				return params, err
+			}
 		}
 
 		maskedParam := datumToEventParam(maskedDatum)
