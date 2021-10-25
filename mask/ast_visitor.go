@@ -122,7 +122,7 @@ func (v *ReplaceVisitor) Leave(in ast.Node) (node ast.Node, ok bool) {
 	return in, true
 }
 
-func NewRestoreVisitor(originExprs ExprMap, inferredTypes TypeMap, maskFunc MaskFunc) *RestoreVisitor {
+func NewRestoreVisitor(originExprs ExprMap, inferredTypes TypeMap, maskFunc MaskFunc, ignoreIntPK bool) *RestoreVisitor {
 	sc := stmtctx.StatementContext{}
 	sc.IgnoreTruncate = true // todo: what's this ?
 
@@ -131,6 +131,7 @@ func NewRestoreVisitor(originExprs ExprMap, inferredTypes TypeMap, maskFunc Mask
 		inferredTypes: inferredTypes,
 		stmtContext:   &sc,
 		maskFunc:      maskFunc,
+		ignoreIntPK:   ignoreIntPK,
 		success:       0,
 		err:           nil,
 	}
@@ -141,6 +142,7 @@ type RestoreVisitor struct {
 	inferredTypes TypeMap
 	stmtContext   *stmtctx.StatementContext
 	maskFunc      MaskFunc
+	ignoreIntPK   bool
 	success       int
 	err           error
 }
@@ -183,7 +185,8 @@ func (v *RestoreVisitor) Leave(in ast.Node) (_ ast.Node, ok bool) {
 		var maskedType *types.FieldType
 		var err error
 
-		if inferredType.IsPrimaryKey() { // todo: add flag for ignoring primary key masking
+		if inferredType.IsPrimaryKey() && v.ignoreIntPK {
+			// use original datum if int pk is ignored
 			maskedDatum, maskedType = originExpr.Datum, &originExpr.Type
 		} else {
 			maskedDatum, maskedType, err = ConvertAndMask(v.stmtContext, originExpr.Datum, inferredType.Ft, v.maskFunc)

@@ -45,15 +45,17 @@ Total        %d
 }
 
 type worker struct {
-	Stats    Stats
-	db       *tidb.Context
-	maskFunc MaskFunc
+	Stats       Stats
+	db          *tidb.Context
+	maskFunc    MaskFunc
+	ignoreIntPK bool
 }
 
-func newWorker(db *tidb.Context, maskFunc MaskFunc) *worker {
+func newWorker(db *tidb.Context, maskFunc MaskFunc, ignoreIntPK bool) *worker {
 	return &worker{
-		db:       db,
-		maskFunc: maskFunc,
+		db:          db,
+		maskFunc:    maskFunc,
+		ignoreIntPK: ignoreIntPK,
 	}
 }
 
@@ -82,7 +84,7 @@ func (w *worker) replaceParamMarker(sql string) (ast.StmtNode, []ReplaceMarker, 
 }
 
 func (w *worker) restore(stmtNode ast.StmtNode, originExprs ExprMap, inferredTypes TypeMap) (string, error) {
-	v := NewRestoreVisitor(originExprs, inferredTypes, w.maskFunc)
+	v := NewRestoreVisitor(originExprs, inferredTypes, w.maskFunc, w.ignoreIntPK)
 	newNode, ok := stmtNode.Accept(v)
 	if !ok || (v.success == 0 && len(originExprs) > 0) {
 		return "", v.err

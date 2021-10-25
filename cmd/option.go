@@ -16,6 +16,7 @@ type Option struct {
 	PrepareDir           []string `opts:"help=directories to SQL files executed per session"`
 	DB                   string   `opts:"help=default database to use"`
 	FilterOutConstraints bool     `opts:"help=whether to filter out table constraints for DDL for better type inference"`
+	IgnoreIntPK          bool     `opts:"help=whether to ignore masking for integer primary keys"`
 	Mask                 string   `opts:"help=name of the mask function"`
 	Verbose              bool     `opts:"help=whether to print warnings for failed entry"`
 }

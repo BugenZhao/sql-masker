@@ -44,12 +44,12 @@ func ReadSQLs(out chan<- string, sqlPaths ...string) {
 }
 
 var (
-	_ tidb.StmtTransform = filterOutConstraints
+	_ tidb.StmtTransform = filterOutConstraintsKeepIntPKInfo
+	_ tidb.StmtTransform = filterOutAllConstraints
 )
 
-func filterOutConstraints(s ast.StmtNode) ast.StmtNode {
+func filterOutConstraintsKeepIntPKInfo(s ast.StmtNode) ast.StmtNode {
 	if s, ok := s.(*ast.CreateTableStmt); ok {
-		// s.Constraints = []*ast.Constraint{}
 		// todo: check whether required to filter out column options like `primary key`, since we may be able to handle it ?
 
 		intColSet := set.NewStringSet()
@@ -74,18 +74,14 @@ func filterOutConstraints(s ast.StmtNode) ast.StmtNode {
 			}
 		}
 		s.Constraints = cs
+	}
+	return s
+}
 
-		// for _, col := range s.Cols {
-		// 	options := []*ast.ColumnOption{}
-		// 	for _, option := range col.Options {
-		// 		switch option.Tp {
-		// 		case ast.ColumnOptionUniqKey, ast.ColumnOptionPrimaryKey:
-		// 		default:
-		// 			options = append(options, option)
-		// 		}
-		// 	}
-		// 	col.Options = options
-		// }
+func filterOutAllConstraints(s ast.StmtNode) ast.StmtNode {
+	if s, ok := s.(*ast.CreateTableStmt); ok {
+		s.Constraints = []*ast.Constraint{}
+		// todo: check whether required to filter out column options like `primary key`, since we may be able to handle it ?
 	}
 	return s
 }

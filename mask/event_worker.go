@@ -22,9 +22,9 @@ type EventWorker struct {
 	preparedStmts PreparedMap
 }
 
-func NewEventWorker(db *tidb.Context, maskFunc MaskFunc) *EventWorker {
+func NewEventWorker(db *tidb.Context, maskFunc MaskFunc, ignoreIntPK bool) *EventWorker {
 	return &EventWorker{
-		worker:        *newWorker(db, maskFunc),
+		worker:        *newWorker(db, maskFunc, ignoreIntPK),
 		preparedStmts: make(PreparedMap),
 	}
 }
@@ -83,8 +83,11 @@ func (w *EventWorker) MaskOneExecute(stmtID uint64, params []interface{}) ([]int
 			continue
 		}
 
-		maskedDatum := originDatum
-		if !tp.IsPrimaryKey() {
+		var maskedDatum types.Datum
+		if tp.IsPrimaryKey() && w.ignoreIntPK {
+			// use original datum if int pk is ignored
+			maskedDatum = originDatum
+		} else {
 			maskedDatum, _, err = ConvertAndMask(sc, originDatum, tp.Ft, w.maskFunc)
 			if err != nil {
 				return params, err

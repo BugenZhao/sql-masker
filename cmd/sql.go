@@ -19,7 +19,7 @@ func (opt *SQLOption) Run() error {
 		return err
 	}
 
-	masker := mask.NewSQLWorker(db, maskFunc)
+	masker := mask.NewSQLWorker(db, maskFunc, globalOption.IgnoreIntPK)
 	maskSQLs := make(chan string)
 	go ReadSQLs(maskSQLs, opt.File)
 	for sql := range maskSQLs {

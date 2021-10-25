@@ -8,7 +8,6 @@ import (
 	"github.com/BugenZhao/sql-masker/tidb"
 )
 
-
 var (
 	globalInstance     *tidb.Instance
 	globalInstanceOnce sync.Once
@@ -35,7 +34,12 @@ func prepareDB() error {
 		go ReadSQLs(ddls, paths...)
 		for sql := range ddls {
 			if globalOption.FilterOutConstraints {
-				err = db.ExecuteWithTransform(sql, filterOutConstraints)
+				if globalOption.IgnoreIntPK {
+					// ignore masking int pk means we should KEEP INFO of int pk
+					err = db.ExecuteWithTransform(sql, filterOutConstraintsKeepIntPKInfo)
+				} else {
+					err = db.ExecuteWithTransform(sql, filterOutAllConstraints)
+				}
 			} else {
 				err = db.Execute(sql)
 			}

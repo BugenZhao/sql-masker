@@ -39,7 +39,7 @@ func (opt *EventOption) RunFile(path string) (*mask.Stats, error) {
 	if err != nil {
 		return nil, err
 	}
-	masker := mask.NewEventWorker(db, maskFunc)
+	masker := mask.NewEventWorker(db, maskFunc, globalOption.IgnoreIntPK)
 
 	outPath := opt.outPath(file.Name())
 	if _, err := os.Stat(outPath); err == nil {
