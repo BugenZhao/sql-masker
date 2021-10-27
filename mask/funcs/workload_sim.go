@@ -240,7 +240,8 @@ func WorkloadSimMask(datum types.Datum, tp *types.FieldType) (types.Datum, *type
 		return datum, tp, nil
 
 	default:
-		return datum, tp, fmt.Errorf("unimplemented for type `%v`", tp)
+		// unimplemented for this type, ignore for now
+		return datum, tp, nil
 	}
 }
 
