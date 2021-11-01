@@ -6,9 +6,9 @@ type SQLWorker struct {
 	worker
 }
 
-func NewSQLWorker(db *tidb.Context, maskFunc MaskFunc, ignoreIntPK bool) *SQLWorker {
+func NewSQLWorker(db *tidb.Context, maskFunc MaskFunc, ignoreIntPK bool, nameMap *NameMap) *SQLWorker {
 	return &SQLWorker{
-		worker: *newWorker(db, maskFunc, ignoreIntPK),
+		worker: *newWorker(db, maskFunc, ignoreIntPK, nameMap),
 	}
 }
 

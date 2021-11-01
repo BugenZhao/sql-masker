@@ -105,6 +105,7 @@ func (g *CastGraph) InferType(c *expression.Constant) *InferredType {
 
 type CastGraphBuilder struct {
 	Constants []*expression.Constant
+	Columns   []*expression.Column
 	Handles   []kv.Handle
 	Graph     *CastGraph
 }
@@ -224,6 +225,8 @@ func (v *CastGraphBuilder) visitExpr(exprs ...Expr) {
 			}
 		case *expression.Constant:
 			v.Constants = append(v.Constants, e)
+		case *expression.Column:
+			v.Columns = append(v.Columns, e)
 		}
 	}
 }

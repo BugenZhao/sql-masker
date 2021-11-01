@@ -122,7 +122,7 @@ func (v *ReplaceVisitor) Leave(in ast.Node) (node ast.Node, ok bool) {
 	return in, true
 }
 
-func NewRestoreVisitor(originExprs ExprMap, inferredTypes TypeMap, maskFunc MaskFunc, ignoreIntPK bool) *RestoreVisitor {
+func NewRestoreVisitor(originExprs ExprMap, inferredTypes TypeMap, maskFunc MaskFunc, nameMap *NameMap, ignoreIntPK bool) *RestoreVisitor {
 	sc := stmtctx.StatementContext{}
 	sc.IgnoreTruncate = true // todo: what's this ?
 
@@ -131,6 +131,7 @@ func NewRestoreVisitor(originExprs ExprMap, inferredTypes TypeMap, maskFunc Mask
 		inferredTypes: inferredTypes,
 		stmtContext:   &sc,
 		maskFunc:      maskFunc,
+		nameMap:       nameMap,
 		ignoreIntPK:   ignoreIntPK,
 		success:       0,
 		err:           nil,
@@ -142,6 +143,7 @@ type RestoreVisitor struct {
 	inferredTypes TypeMap
 	stmtContext   *stmtctx.StatementContext
 	maskFunc      MaskFunc
+	nameMap       *NameMap
 	ignoreIntPK   bool
 	success       int
 	err           error
@@ -160,6 +162,17 @@ func (v *RestoreVisitor) Enter(in ast.Node) (_ ast.Node, skipChilren bool) {
 }
 
 func (v *RestoreVisitor) Leave(in ast.Node) (_ ast.Node, ok bool) {
+	if v.nameMap != nil {
+		if col, ok := in.(*ast.ColumnName); ok {
+			col = v.nameMap.ColumnName(col)
+			return col, true
+		}
+		if tab, ok := in.(*ast.TableName); ok {
+			tab = v.nameMap.TableName(tab)
+			return tab, true
+		}
+	}
+
 	if expr, ok := in.(*driver.ValueExpr); ok {
 		m := ReplaceMarker(expr.Datum.GetInt64())
 		originExpr, ok := v.originExprs[m]

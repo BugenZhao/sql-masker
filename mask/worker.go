@@ -45,17 +45,19 @@ Total        %d
 }
 
 type worker struct {
-	Stats       Stats
-	db          *tidb.Context
-	maskFunc    MaskFunc
-	ignoreIntPK bool
+	Stats         Stats
+	db            *tidb.Context
+	maskFunc      MaskFunc
+	globalNameMap *NameMap
+	ignoreIntPK   bool
 }
 
-func newWorker(db *tidb.Context, maskFunc MaskFunc, ignoreIntPK bool) *worker {
+func newWorker(db *tidb.Context, maskFunc MaskFunc, ignoreIntPK bool, globalNameMap *NameMap) *worker {
 	return &worker{
-		db:          db,
-		maskFunc:    maskFunc,
-		ignoreIntPK: ignoreIntPK,
+		db:            db,
+		maskFunc:      maskFunc,
+		globalNameMap: globalNameMap,
+		ignoreIntPK:   ignoreIntPK,
 	}
 }
 
@@ -83,8 +85,8 @@ func (w *worker) replaceParamMarker(sql string) (ast.StmtNode, []ReplaceMarker, 
 	return newNode.(ast.StmtNode), markers, nil
 }
 
-func (w *worker) restore(stmtNode ast.StmtNode, originExprs ExprMap, inferredTypes TypeMap) (string, error) {
-	v := NewRestoreVisitor(originExprs, inferredTypes, w.maskFunc, w.ignoreIntPK)
+func (w *worker) restore(stmtNode ast.StmtNode, originExprs ExprMap, inferredTypes TypeMap, nameMap *NameMap) (string, error) {
+	v := NewRestoreVisitor(originExprs, inferredTypes, w.maskFunc, nameMap, w.ignoreIntPK)
 	newNode, ok := stmtNode.Accept(v)
 	if !ok || (v.success == 0 && len(originExprs) > 0) {
 		return "", v.err
@@ -102,16 +104,21 @@ func (w *worker) restore(stmtNode ast.StmtNode, originExprs ExprMap, inferredTyp
 	return newSQL, v.err
 }
 
-func (w *worker) infer(stmtNode ast.StmtNode) (TypeMap, error) {
+func (w *worker) infer(stmtNode ast.StmtNode) (TypeMap, *NameMap, error) {
 	execStmt, err := w.db.CompileStmtNode(stmtNode)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	b := NewCastGraphBuilder()
 	err = b.Build(execStmt.Plan)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
+	}
+
+	localNameMap, err := NewLocalNameMap(w.globalNameMap, b.Columns)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	inferredTypes := make(TypeMap)
@@ -137,7 +144,7 @@ func (w *worker) infer(stmtNode ast.StmtNode) (TypeMap, error) {
 		}
 	}
 
-	return inferredTypes, nil
+	return inferredTypes, localNameMap, nil
 }
 
 func (w *worker) mayExecute(node ast.StmtNode) (bool, error) {
@@ -171,12 +178,12 @@ func (w *worker) maskOneQuery(sql string) (string, error) {
 		return "", err
 	}
 
-	inferredTypes, err := w.infer(replacedStmtNode)
+	inferredTypes, localNameMap, err := w.infer(replacedStmtNode)
 	if err != nil {
 		return "", err
 	}
 
-	newSQL, err := w.restore(replacedStmtNode, originExprs, inferredTypes)
+	newSQL, err := w.restore(replacedStmtNode, originExprs, inferredTypes, localNameMap)
 	if err != nil && newSQL != "" { // problematic
 		newSQL = fmt.Sprintf("/* PROBLEMATIC: %v */ %s", err, newSQL)
 	}

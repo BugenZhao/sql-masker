@@ -22,9 +22,9 @@ type EventWorker struct {
 	preparedStmts PreparedMap
 }
 
-func NewEventWorker(db *tidb.Context, maskFunc MaskFunc, ignoreIntPK bool) *EventWorker {
+func NewEventWorker(db *tidb.Context, maskFunc MaskFunc, ignoreIntPK bool, nameMap *NameMap) *EventWorker {
 	return &EventWorker{
-		worker:        *newWorker(db, maskFunc, ignoreIntPK),
+		worker:        *newWorker(db, maskFunc, ignoreIntPK, nameMap),
 		preparedStmts: make(PreparedMap),
 	}
 }
@@ -34,7 +34,7 @@ func (w *EventWorker) PrepareOne(stmtID uint64, sql string) error {
 	if err != nil {
 		return err
 	}
-	inferredTypes, err := w.infer(replacedStmtNode)
+	inferredTypes, _, err := w.infer(replacedStmtNode)
 	if err != nil {
 		return err
 	}
