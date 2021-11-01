@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/pingcap/parser/ast"
+	"github.com/pingcap/parser/model"
 	"github.com/pingcap/tidb/expression"
 )
 
@@ -15,6 +17,10 @@ func NewGlobalNameMap(tables map[string]string, columns map[string]string) *Name
 }
 
 func NewLocalNameMap(global *NameMap, columnsSubSet []*expression.Column) (*NameMap, error) {
+	if global == nil {
+		return nil, nil
+	}
+
 	columns := make(map[string]string)
 
 	for _, col := range columnsSubSet {
@@ -66,7 +72,40 @@ func (m *NameMap) MustColumn(from string) (string, error) {
 	return nameMapFind(from, m.columns)
 }
 
+func (m *NameMap) ColumnName(name *ast.ColumnName) *ast.ColumnName {
+	mapped := m.Column(name.String())
+	tokens := strings.Split(mapped, ".")
+	if len(tokens) >= 1 {
+		name.Name = model.NewCIStr(tokens[len(tokens)-1])
+	}
+	if len(tokens) >= 2 {
+		name.Table = model.NewCIStr(tokens[len(tokens)-2])
+	}
+	if len(tokens) == 3 {
+		name.Table = model.NewCIStr(tokens[len(tokens)-3])
+	}
+	return name
+}
+
 func (m *NameMap) Table(from string) string {
 	to, _ := nameMapFind(from, m.tables)
 	return to
+}
+
+func (m *NameMap) TableName(name *ast.TableName) *ast.TableName {
+	var from string
+	if name.Schema.String() == "" {
+		from = name.Name.String()
+	} else {
+		from = fmt.Sprintf("%v.%v", name.Schema, name.Name)
+	}
+	mapped := m.Table(from)
+	tokens := strings.Split(mapped, ".")
+	if len(tokens) >= 1 {
+		name.Name = model.NewCIStr(tokens[len(tokens)-1])
+	}
+	if len(tokens) >= 2 {
+		name.Name = model.NewCIStr(tokens[len(tokens)-2])
+	}
+	return name
 }
