@@ -1,0 +1,20 @@
+/*from(br)*/CREATE TABLE `stock` (
+  `s_i_id` int(11) NOT NULL,
+  `s_w_id` int(11) NOT NULL,
+  `s_quantity` int(11) DEFAULT NULL,
+  `s_dist_01` char(24) DEFAULT NULL,
+  `s_dist_02` char(24) DEFAULT NULL,
+  `s_dist_03` char(24) DEFAULT NULL,
+  `s_dist_04` char(24) DEFAULT NULL,
+  `s_dist_05` char(24) DEFAULT NULL,
+  `s_dist_06` char(24) DEFAULT NULL,
+  `s_dist_07` char(24) DEFAULT NULL,
+  `s_dist_08` char(24) DEFAULT NULL,
+  `s_dist_09` char(24) DEFAULT NULL,
+  `s_dist_10` char(24) DEFAULT NULL,
+  `s_ytd` int(11) DEFAULT NULL,
+  `s_order_cnt` int(11) DEFAULT NULL,
+  `s_remote_cnt` int(11) DEFAULT NULL,
+  `s_data` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`s_w_id`,`s_i_id`) /*T![clustered_index] NONCLUSTERED */
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
