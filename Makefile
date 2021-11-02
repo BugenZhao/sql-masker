@@ -29,10 +29,17 @@ cli:
 	$(GOBUILD) -o bin/sql-masker ./cmd
 
 sql-%: cli
-	bin/sql-masker -d example/$*/ddl -p example/$*/prepare sql -f example/$*/mask.sql
+	bin/sql-masker -d example/$*/ddl -p example/$*/prepare -n $*-name.json sql -f example/$*/mask.sql
+
+name-%: cli
+	bin/sql-masker -d example/$*/name name -o $*-name.json
 
 event-%: cli
-	bin/sql-masker -d example/$*/ddl -p example/$*/prepare event -i example/$*/events -o out/$*
+	bin/sql-masker -d example/$*/ddl -p example/$*/prepare -m workload-sim -v event -i example/$*/events -o out/$*
+
+event-with-name-%: cli
+	@make name-$*
+	bin/sql-masker -d example/$*/ddl -p example/$*/prepare -n $*-name.json -m workload-sim -v event -i example/$*/events -o out/$*-with-name
 
 test:
 	$(GOTEST) ./...

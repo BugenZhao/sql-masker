@@ -1,9 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 	"runtime"
 	"strings"
+	"sync"
 
 	"github.com/BugenZhao/sql-masker/mask"
 )
@@ -20,6 +23,7 @@ type Option struct {
 	IgnoreIntPK          bool     `opts:"help=whether to ignore masking for integer primary keys"`
 	Mask                 string   `opts:"help=name of the mask function"`
 	Verbose              bool     `opts:"help=whether to print warnings for failed entry"`
+	NameMapPath          string   `opts:"name=name-map, help=path to name map"`
 }
 
 var globalOption = &Option{
@@ -34,7 +38,7 @@ var globalOption = &Option{
 	Mask:                 "debug",
 }
 
-func (o *Option) resolveMaskFunc() mask.MaskFunc {
+func (o *Option) ResolveMaskFunc() mask.MaskFunc {
 	fn, ok := mask.MaskFuncMap[strings.ToLower(o.Mask)]
 	if !ok {
 		keys := make([]string, 0, len(mask.MaskFuncMap))
@@ -44,4 +48,32 @@ func (o *Option) resolveMaskFunc() mask.MaskFunc {
 		panic(fmt.Errorf("no such mask function `%s`, available functions are `%v`", o.Mask, keys))
 	}
 	return fn
+}
+
+var (
+	nameMap     mask.NameMap
+	nameMapOnce sync.Once
+)
+
+func (o *Option) ReadNameMap() *mask.NameMap {
+	nameMapOnce.Do(func() {
+		if o.NameMapPath == "" {
+			return
+		}
+
+		bytes, err := os.ReadFile(o.NameMapPath)
+		if err != nil {
+			panic(err)
+		}
+		err = json.Unmarshal(bytes, &nameMap)
+		if err != nil {
+			panic(fmt.Errorf("bad name map format; %w", err))
+		}
+	})
+
+	if len(nameMap.Columns) == 0 {
+		return nil
+	} else {
+		return &nameMap
+	}
 }

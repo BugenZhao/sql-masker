@@ -14,7 +14,8 @@ import (
 )
 
 type NameOption struct {
-	MaskedDBPrefix string
+	MaskedDBPrefix string `opts:"help=prefix of masked schema files"`
+	Output         string `opts:"help=path to the output name map"`
 }
 
 func (opt *NameOption) handleDir(dir string, tables map[string]string, columns map[string]string) error {
@@ -96,7 +97,7 @@ func (opt *NameOption) Run() error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%s", bytes)
+	os.WriteFile(opt.Output, bytes, 0666)
 
 	return nil
 }

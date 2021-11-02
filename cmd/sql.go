@@ -12,14 +12,16 @@ type SQLOption struct {
 }
 
 func (opt *SQLOption) Run() error {
-	maskFunc := globalOption.resolveMaskFunc()
+	maskFunc := globalOption.ResolveMaskFunc()
 
 	db, err := NewPreparedTiDBContext()
 	if err != nil {
 		return err
 	}
 
-	masker := mask.NewSQLWorker(db, maskFunc, globalOption.IgnoreIntPK, nil) // todo: name map
+	nameMap := globalOption.ReadNameMap()
+	masker := mask.NewSQLWorker(db, maskFunc, globalOption.IgnoreIntPK, nameMap)
+
 	maskSQLs := make(chan string)
 	go ReadSQLs(maskSQLs, opt.File)
 	for sql := range maskSQLs {

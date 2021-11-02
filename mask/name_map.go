@@ -51,6 +51,10 @@ type NameMap struct {
 }
 
 func nameMapFind(from string, m map[string]string) (string, error) {
+	if from == "" {
+		return "", nil
+	}
+
 	from = strings.ToLower(from)
 	tokens := strings.Split(from, ".")
 	for i := 0; i < len(tokens); i++ {
@@ -106,7 +110,7 @@ func (m *NameMap) TableName(name *ast.TableName) *ast.TableName {
 		name.Name = model.NewCIStr(tokens[len(tokens)-1])
 	}
 	if len(tokens) >= 2 {
-		name.Name = model.NewCIStr(tokens[len(tokens)-2])
+		name.Schema = model.NewCIStr(tokens[len(tokens)-2])
 	}
 	return name
 }
