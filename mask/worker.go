@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"sort"
 	"strconv"
-	"strings"
 
 	"github.com/BugenZhao/sql-masker/tidb"
 	"github.com/pingcap/parser/ast"
-	"github.com/pingcap/parser/format"
 	"github.com/pingcap/tidb/kv"
 )
 
@@ -92,15 +90,11 @@ func (w *worker) restore(stmtNode ast.StmtNode, originExprs ExprMap, inferredTyp
 		return "", v.err
 	}
 
-	buf := &strings.Builder{}
-	restoreFlags := format.DefaultRestoreFlags | format.RestoreStringWithoutDefaultCharset
-	restoreCtx := format.NewRestoreCtx(restoreFlags, buf)
-	err := newNode.Restore(restoreCtx)
+	newSQL, err := w.db.RestoreSQL(newNode)
 	if err != nil {
 		return "", err
 	}
 
-	newSQL := buf.String()
 	return newSQL, v.err
 }
 

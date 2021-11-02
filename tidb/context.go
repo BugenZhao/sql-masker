@@ -2,8 +2,10 @@ package tidb
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/pingcap/parser/ast"
+	"github.com/pingcap/parser/format"
 	"github.com/pingcap/tidb/executor"
 	"github.com/pingcap/tidb/server"
 )
@@ -82,4 +84,17 @@ func (db *Context) Compile(sql string) (*executor.ExecStmt, error) {
 		return nil, err
 	}
 	return db.CompileStmtNode(stmt)
+}
+
+func (db *Context) RestoreSQL(node ast.Node) (string, error) {
+	buf := &strings.Builder{}
+	restoreFlags := format.DefaultRestoreFlags | format.RestoreStringWithoutDefaultCharset
+	restoreCtx := format.NewRestoreCtx(restoreFlags, buf)
+	err := node.Restore(restoreCtx)
+	if err != nil {
+		return "", err
+	}
+
+	sql := buf.String()
+	return sql, nil
 }

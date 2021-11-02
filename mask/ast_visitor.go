@@ -122,11 +122,19 @@ func (v *ReplaceVisitor) Leave(in ast.Node) (node ast.Node, ok bool) {
 	return in, true
 }
 
+type RestoreMode int
+
+const (
+	RestoreModeNameValue RestoreMode = iota
+	RestoreModeNameOnly
+)
+
 func NewRestoreVisitor(originExprs ExprMap, inferredTypes TypeMap, maskFunc MaskFunc, nameMap *NameMap, ignoreIntPK bool) *RestoreVisitor {
 	sc := stmtctx.StatementContext{}
 	sc.IgnoreTruncate = true // todo: what's this ?
 
 	return &RestoreVisitor{
+		mode:          RestoreModeNameValue,
 		originExprs:   originExprs,
 		inferredTypes: inferredTypes,
 		stmtContext:   &sc,
@@ -138,7 +146,21 @@ func NewRestoreVisitor(originExprs ExprMap, inferredTypes TypeMap, maskFunc Mask
 	}
 }
 
+func NewNameOnlyRestoreVisitor(nameMap *NameMap) *RestoreVisitor {
+	sc := stmtctx.StatementContext{}
+	sc.IgnoreTruncate = true // todo: what's this ?
+
+	return &RestoreVisitor{
+		mode:        RestoreModeNameOnly,
+		stmtContext: &sc,
+		nameMap:     nameMap,
+		success:     0,
+		err:         nil,
+	}
+}
+
 type RestoreVisitor struct {
+	mode          RestoreMode
 	originExprs   ExprMap
 	inferredTypes TypeMap
 	stmtContext   *stmtctx.StatementContext
@@ -168,52 +190,56 @@ func (v *RestoreVisitor) Leave(in ast.Node) (_ ast.Node, ok bool) {
 			return col, true
 		}
 		if tab, ok := in.(*ast.TableName); ok {
+			fmt.Println("table name", tab)
 			tab = v.nameMap.TableName(tab)
 			return tab, true
 		}
 	}
 
-	if expr, ok := in.(*driver.ValueExpr); ok {
-		m := ReplaceMarker(expr.Datum.GetInt64())
-		originExpr, ok := v.originExprs[m]
-		if !ok {
-			v.appendError(fmt.Errorf("no replace record found for `%v`", expr.Datum))
-			return in, false
-		}
-		inferredType, ok := v.inferredTypes[m]
-		if !ok {
-			// // DIRTY HACK: handle `a + b`
-			// guessI := m*2 + replaceMarkerStep
-			// guessedType, ok := v.inferredTypes[guessI]
-			// if ok {
-			// 	v.appendError(fmt.Errorf("type for `%v` is guessed", originExpr.Datum))
-			// 	inferredType = guessedType
-			// } else {
-			v.appendError(fmt.Errorf("type for `%v` not inferred", originExpr.Datum))
-			return originExpr, true
-			// }
-		}
+	if v.mode == RestoreModeNameValue {
+		if expr, ok := in.(*driver.ValueExpr); ok {
+			m := ReplaceMarker(expr.Datum.GetInt64())
+			originExpr, ok := v.originExprs[m]
+			if !ok {
+				v.appendError(fmt.Errorf("no replace record found for `%v`", expr.Datum))
+				return in, false
+			}
+			inferredType, ok := v.inferredTypes[m]
+			if !ok {
+				// // DIRTY HACK: handle `a + b`
+				// guessI := m*2 + replaceMarkerStep
+				// guessedType, ok := v.inferredTypes[guessI]
+				// if ok {
+				// 	v.appendError(fmt.Errorf("type for `%v` is guessed", originExpr.Datum))
+				// 	inferredType = guessedType
+				// } else {
+				v.appendError(fmt.Errorf("type for `%v` not inferred", originExpr.Datum))
+				return originExpr, true
+				// }
+			}
 
-		var maskedDatum types.Datum
-		var maskedType *types.FieldType
-		var err error
+			var maskedDatum types.Datum
+			var maskedType *types.FieldType
+			var err error
 
-		if inferredType.IsPrimaryKey() && v.ignoreIntPK {
-			// use original datum if int pk is ignored
-			maskedDatum, maskedType = originExpr.Datum, &originExpr.Type
-		} else {
-			maskedDatum, maskedType, err = ConvertAndMask(v.stmtContext, originExpr.Datum, inferredType.Ft, v.maskFunc)
+			if inferredType.IsPrimaryKey() && v.ignoreIntPK {
+				// use original datum if int pk is ignored
+				maskedDatum, maskedType = originExpr.Datum, &originExpr.Type
+			} else {
+				maskedDatum, maskedType, err = ConvertAndMask(v.stmtContext, originExpr.Datum, inferredType.Ft, v.maskFunc)
+			}
+
+			if err != nil {
+				v.appendError(err)
+				return originExpr, false
+			}
+
+			restoredExpr := ast.NewValueExpr(maskedDatum.GetValue(), "", "")
+			restoredExpr.SetType(maskedType)
+			v.success += 1
+			return restoredExpr, true
 		}
-
-		if err != nil {
-			v.appendError(err)
-			return originExpr, false
-		}
-
-		restoredExpr := ast.NewValueExpr(maskedDatum.GetValue(), "", "")
-		restoredExpr.SetType(maskedType)
-		v.success += 1
-		return restoredExpr, true
 	}
+
 	return in, true
 }

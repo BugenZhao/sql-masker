@@ -29,20 +29,38 @@ func NewEventWorker(db *tidb.Context, maskFunc MaskFunc, ignoreIntPK bool, nameM
 	}
 }
 
-func (w *EventWorker) PrepareOne(stmtID uint64, sql string) error {
+func (w *EventWorker) PrepareOne(stmtID uint64, sql string) (string, error) {
 	replacedStmtNode, sortedMarkers, err := w.replaceParamMarker(sql)
 	if err != nil {
-		return err
+		return "", err
 	}
-	inferredTypes, _, err := w.infer(replacedStmtNode)
+	inferredTypes, localNameMap, err := w.infer(replacedStmtNode)
 	if err != nil {
-		return err
+		return "", err
+	}
+
+	newSQL := sql
+	if localNameMap != nil {
+		stmtNode, err := w.db.ParseOne(sql) // todo: this node does not contains db info
+		if err != nil {
+			return "", err
+		}
+		v := NewNameOnlyRestoreVisitor(localNameMap)
+
+		newNode, ok := stmtNode.Accept(v)
+		if !ok {
+			return "", v.err
+		}
+		newSQL, err = w.db.RestoreSQL(newNode)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	w.preparedStmts[stmtID] = Prepared{
 		sql, inferredTypes, sortedMarkers,
 	}
-	return nil
+	return newSQL, nil
 }
 
 func (w *EventWorker) MaskOneExecute(stmtID uint64, params []interface{}) ([]interface{}, error) {
@@ -123,10 +141,11 @@ func (w *EventWorker) MaskOne(ev event.MySQLEvent) (event.MySQLEvent, error) {
 		ev.Query = maskedQuery
 
 	case event.EventStmtPrepare:
-		err := w.PrepareOne(ev.StmtID, ev.Query)
+		newSQL, err := w.PrepareOne(ev.StmtID, ev.Query)
 		if err != nil {
 			return ev, err
 		}
+		ev.Query = newSQL
 
 	case event.EventStmtExecute:
 		maskedParams, err := w.MaskOneExecute(ev.StmtID, ev.Params)
