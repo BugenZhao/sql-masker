@@ -11,7 +11,8 @@ import (
 type Option struct {
 	SQLOption            `opts:"mode=cmd, name=sql,   help=Mask SQL queries"`
 	EventOption          `opts:"mode=cmd, name=event, help=Mask MySQL events"`
-	ListOption           `opts:"mode=cmd, name=list, help=List all mask functions"`
+	ListOption           `opts:"mode=cmd, name=list,  help=List all mask functions"`
+	NameOption           `opts:"mode=cmd, name=name,  help=Generate name maps"`
 	DDLDir               []string `opts:"help=directories to DDL SQL files executed only once"`
 	PrepareDir           []string `opts:"help=directories to SQL files executed per session"`
 	DB                   string   `opts:"help=default database to use"`
@@ -24,6 +25,9 @@ type Option struct {
 var globalOption = &Option{
 	EventOption: EventOption{
 		Concurrency: runtime.NumCPU(),
+	},
+	NameOption: NameOption{
+		MaskedDBPrefix: "MASKED-",
 	},
 	DB:                   "test",
 	FilterOutConstraints: true,

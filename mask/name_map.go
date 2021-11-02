@@ -11,8 +11,8 @@ import (
 
 func NewGlobalNameMap(tables map[string]string, columns map[string]string) *NameMap {
 	return &NameMap{
-		tables:  tables,
-		columns: columns,
+		Tables:  tables,
+		Columns: columns,
 	}
 }
 
@@ -40,17 +40,18 @@ func NewLocalNameMap(global *NameMap, columnsSubSet []*expression.Column) (*Name
 	}
 
 	return &NameMap{
-		tables:  global.tables,
-		columns: columns,
+		Tables:  global.Tables,
+		Columns: columns,
 	}, nil
 }
 
 type NameMap struct {
-	tables  map[string]string
-	columns map[string]string
+	Tables  map[string]string `json:"tables"`
+	Columns map[string]string `json:"columns"`
 }
 
 func nameMapFind(from string, m map[string]string) (string, error) {
+	from = strings.ToLower(from)
 	tokens := strings.Split(from, ".")
 	for i := 0; i < len(tokens); i++ {
 		suffix := strings.Join(tokens[i:], ".")
@@ -64,12 +65,12 @@ func nameMapFind(from string, m map[string]string) (string, error) {
 }
 
 func (m *NameMap) Column(from string) string {
-	to, _ := nameMapFind(from, m.columns)
+	to, _ := nameMapFind(from, m.Columns)
 	return to
 }
 
 func (m *NameMap) MustColumn(from string) (string, error) {
-	return nameMapFind(from, m.columns)
+	return nameMapFind(from, m.Columns)
 }
 
 func (m *NameMap) ColumnName(name *ast.ColumnName) *ast.ColumnName {
@@ -88,7 +89,7 @@ func (m *NameMap) ColumnName(name *ast.ColumnName) *ast.ColumnName {
 }
 
 func (m *NameMap) Table(from string) string {
-	to, _ := nameMapFind(from, m.tables)
+	to, _ := nameMapFind(from, m.Tables)
 	return to
 }
 
