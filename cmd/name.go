@@ -18,7 +18,7 @@ type NameOption struct {
 	Output         string `opts:"help=path to the output name map"`
 }
 
-func (opt *NameOption) handleDir(dir string, tables map[string]string, columns map[string]string) error {
+func (opt *NameOption) handleDir(dir string, columns map[string]string) error {
 	ddls, _ := filepath.Glob(filepath.Join(dir, "*.*-schema.sql"))
 
 	origDDLs := []string{}
@@ -71,7 +71,6 @@ func (opt *NameOption) handleDir(dir string, tables map[string]string, columns m
 			return fmt.Errorf("bad number of columns for `%s` and `%s`", oPrefix, mPrefix)
 		}
 
-		tables[oPrefix] = mPrefix
 		for j := range o.Cols {
 			oCol := fmt.Sprintf("%s.%s", oPrefix, o.Cols[j].Name.Name.L)
 			mCol := fmt.Sprintf("%s.%s", mPrefix, m.Cols[j].Name.Name.L)
@@ -85,14 +84,13 @@ func (opt *NameOption) handleDir(dir string, tables map[string]string, columns m
 func (opt *NameOption) Run() error {
 	opt.MaskedDBPrefix = strings.ToLower(opt.MaskedDBPrefix)
 
-	tables := map[string]string{}
 	columns := map[string]string{}
 
 	for _, dir := range globalOption.DDLDir {
-		opt.handleDir(dir, tables, columns)
+		opt.handleDir(dir, columns)
 	}
 
-	nameMap := mask.NewGlobalNameMap(tables, columns)
+	nameMap := mask.NewGlobalNameMap(columns)
 	bytes, err := json.MarshalIndent(nameMap, "", "\t")
 	if err != nil {
 		return err

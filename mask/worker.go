@@ -110,7 +110,7 @@ func (w *worker) infer(stmtNode ast.StmtNode) (TypeMap, *NameMap, error) {
 		return nil, nil, err
 	}
 
-	localNameMap, err := NewLocalNameMap(w.globalNameMap, b.Columns)
+	localNameMap, err := NewLocalNameMap(w.globalNameMap, b.Columns, w.db.CurrentDB())
 	if err != nil {
 		return nil, nil, err
 	}

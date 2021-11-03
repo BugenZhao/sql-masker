@@ -98,3 +98,7 @@ func (db *Context) RestoreSQL(node ast.Node) (string, error) {
 	sql := buf.String()
 	return sql, nil
 }
+
+func (db *Context) CurrentDB() string {
+	return db.qctx.GetSessionVars().CurrentDB
+}

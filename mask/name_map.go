@@ -9,14 +9,25 @@ import (
 	"github.com/pingcap/tidb/expression"
 )
 
-func NewGlobalNameMap(tables map[string]string, columns map[string]string) *NameMap {
+func NewGlobalNameMap(columns map[string]string) *NameMap {
+	dbs := map[string]string{}
+	tables := map[string]string{}
+
+	for from, to := range columns {
+		fromTokens := strings.Split(from, ".")
+		toTokens := strings.Split(to, ".")
+		dbs[fromTokens[0]] = toTokens[0]
+		tables[strings.Join(fromTokens[:2], ".")] = strings.Join(toTokens[:2], ".")
+	}
+
 	return &NameMap{
+		DBs:     dbs,
 		Tables:  tables,
 		Columns: columns,
 	}
 }
 
-func NewLocalNameMap(global *NameMap, columnsSubSet []*expression.Column) (*NameMap, error) {
+func NewLocalNameMap(global *NameMap, columnsSubSet []*expression.Column, currentDB string) (*NameMap, error) {
 	if global == nil {
 		return nil, nil
 	}
@@ -40,14 +51,18 @@ func NewLocalNameMap(global *NameMap, columnsSubSet []*expression.Column) (*Name
 	}
 
 	return &NameMap{
-		Tables:  global.Tables,
-		Columns: columns,
+		Tables:    global.Tables,
+		Columns:   columns,
+		currentDB: currentDB,
 	}, nil
 }
 
 type NameMap struct {
+	DBs     map[string]string `json:"dbs"`
 	Tables  map[string]string `json:"tables"`
 	Columns map[string]string `json:"columns"`
+
+	currentDB string
 }
 
 func nameMapFind(from string, m map[string]string) (string, error) {
@@ -93,13 +108,17 @@ func (m *NameMap) ColumnName(name *ast.ColumnName) *ast.ColumnName {
 }
 
 func (m *NameMap) Table(from string) string {
+	if m.currentDB != "" && !strings.Contains(from, ".") {
+		from = fmt.Sprintf("%s.%s", m.currentDB, from)
+	}
+
 	to, _ := nameMapFind(from, m.Tables)
 	return to
 }
 
 func (m *NameMap) TableName(name *ast.TableName) *ast.TableName {
 	var from string
-	if name.Schema.String() == "" {
+	if name.Schema.L == "" {
 		from = name.Name.String()
 	} else {
 		from = fmt.Sprintf("%v.%v", name.Schema, name.Name)

@@ -190,55 +190,55 @@ func (v *RestoreVisitor) Leave(in ast.Node) (_ ast.Node, ok bool) {
 			return col, true
 		}
 		if tab, ok := in.(*ast.TableName); ok {
-			fmt.Println("table name", tab)
 			tab = v.nameMap.TableName(tab)
 			return tab, true
 		}
 	}
+	if v.mode == RestoreModeNameOnly {
+		return in, true
+	}
 
-	if v.mode == RestoreModeNameValue {
-		if expr, ok := in.(*driver.ValueExpr); ok {
-			m := ReplaceMarker(expr.Datum.GetInt64())
-			originExpr, ok := v.originExprs[m]
-			if !ok {
-				v.appendError(fmt.Errorf("no replace record found for `%v`", expr.Datum))
-				return in, false
-			}
-			inferredType, ok := v.inferredTypes[m]
-			if !ok {
-				// // DIRTY HACK: handle `a + b`
-				// guessI := m*2 + replaceMarkerStep
-				// guessedType, ok := v.inferredTypes[guessI]
-				// if ok {
-				// 	v.appendError(fmt.Errorf("type for `%v` is guessed", originExpr.Datum))
-				// 	inferredType = guessedType
-				// } else {
-				v.appendError(fmt.Errorf("type for `%v` not inferred", originExpr.Datum))
-				return originExpr, true
-				// }
-			}
-
-			var maskedDatum types.Datum
-			var maskedType *types.FieldType
-			var err error
-
-			if inferredType.IsPrimaryKey() && v.ignoreIntPK {
-				// use original datum if int pk is ignored
-				maskedDatum, maskedType = originExpr.Datum, &originExpr.Type
-			} else {
-				maskedDatum, maskedType, err = ConvertAndMask(v.stmtContext, originExpr.Datum, inferredType.Ft, v.maskFunc)
-			}
-
-			if err != nil {
-				v.appendError(err)
-				return originExpr, false
-			}
-
-			restoredExpr := ast.NewValueExpr(maskedDatum.GetValue(), "", "")
-			restoredExpr.SetType(maskedType)
-			v.success += 1
-			return restoredExpr, true
+	if expr, ok := in.(*driver.ValueExpr); ok {
+		m := ReplaceMarker(expr.Datum.GetInt64())
+		originExpr, ok := v.originExprs[m]
+		if !ok {
+			v.appendError(fmt.Errorf("no replace record found for `%v`", expr.Datum))
+			return in, false
 		}
+		inferredType, ok := v.inferredTypes[m]
+		if !ok {
+			// // DIRTY HACK: handle `a + b`
+			// guessI := m*2 + replaceMarkerStep
+			// guessedType, ok := v.inferredTypes[guessI]
+			// if ok {
+			// 	v.appendError(fmt.Errorf("type for `%v` is guessed", originExpr.Datum))
+			// 	inferredType = guessedType
+			// } else {
+			v.appendError(fmt.Errorf("type for `%v` not inferred", originExpr.Datum))
+			return originExpr, true
+			// }
+		}
+
+		var maskedDatum types.Datum
+		var maskedType *types.FieldType
+		var err error
+
+		if inferredType.IsPrimaryKey() && v.ignoreIntPK {
+			// use original datum if int pk is ignored
+			maskedDatum, maskedType = originExpr.Datum, &originExpr.Type
+		} else {
+			maskedDatum, maskedType, err = ConvertAndMask(v.stmtContext, originExpr.Datum, inferredType.Ft, v.maskFunc)
+		}
+
+		if err != nil {
+			v.appendError(err)
+			return originExpr, false
+		}
+
+		restoredExpr := ast.NewValueExpr(maskedDatum.GetValue(), "", "")
+		restoredExpr.SetType(maskedType)
+		v.success += 1
+		return restoredExpr, true
 	}
 
 	return in, true
