@@ -95,7 +95,7 @@ func (w *EventWorker) MaskOneExecute(stmtID uint64, params []interface{}) ([]int
 				break
 			}
 		}
-		if tp.Ft == nil {
+		if tp == nil {
 			err = fmt.Errorf("type for `%v` not inferred; %w", originDatum, err)
 			maskedParams = append(maskedParams, originDatum)
 			continue

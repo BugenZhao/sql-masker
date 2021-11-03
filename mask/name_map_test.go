@@ -33,5 +33,5 @@ func TestItWorks(t *testing.T) {
 	require.Equal(t, local.Column("test.t.id"), "db0.table0.col0")
 
 	require.Equal(t, local.Table("test.t"), "db0.table0")
-	require.Equal(t, local.Table("t"), "db0.table0")
+	require.Equal(t, local.Table("t"), "table0")
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/pingcap/parser/ast"
+	"github.com/pingcap/parser/model"
 	"github.com/pingcap/parser/mysql"
 	"github.com/pingcap/tidb/sessionctx/stmtctx"
 	"github.com/pingcap/tidb/types"
@@ -192,6 +193,16 @@ func (v *RestoreVisitor) Leave(in ast.Node) (_ ast.Node, ok bool) {
 		if tab, ok := in.(*ast.TableName); ok {
 			tab = v.nameMap.TableName(tab)
 			return tab, true
+		}
+		if hint, ok := in.(*ast.TableOptimizerHint); ok {
+			newHintTables := []ast.HintTable{}
+			for _, table := range hint.Tables {
+				table.DBName = model.NewCIStr(v.nameMap.DB(table.DBName.L))
+				table.TableName = model.NewCIStr(v.nameMap.Table(table.TableName.L))
+				newHintTables = append(newHintTables, table)
+			}
+			hint.Tables = newHintTables
+			return hint, true
 		}
 	}
 	if v.mode == RestoreModeNameOnly {

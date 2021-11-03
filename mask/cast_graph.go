@@ -2,6 +2,7 @@ package mask
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/pingcap/parser/ast"
 	"github.com/pingcap/tidb/expression"
@@ -120,6 +121,7 @@ func (v *CastGraphBuilder) visitUpdate(update plannercore.Update) {
 	v.visitPhysicalPlan(update.SelectPlan)
 	for _, assignment := range update.OrderedList {
 		v.Graph.Add(assignment.Col, assignment.Expr)
+		v.visitExpr(assignment.Col)
 		v.visitExpr(assignment.Expr)
 	}
 }
@@ -131,26 +133,22 @@ func (v *CastGraphBuilder) visitDelete(delete plannercore.Delete) {
 func (v *CastGraphBuilder) visitInsert(insert plannercore.Insert) {
 	v.visitPhysicalPlan(insert.SelectPlan)
 
-	columnMap := make(map[int]*expression.Column)
-	for i, colName := range insert.Columns {
-		lowerName := colName.Name.L
-		for _, col := range insert.Table.Cols() {
-			if lowerName == col.Name.L {
-				columnMap[i] = &expression.Column{
-					RetType: &col.FieldType,
-				}
-				break
-			}
-		}
+	columnMap := make(map[string]*expression.Column)
+	for _, col := range insert.Schema4OnDuplicate.Columns {
+		tokens := strings.Split(strings.ToLower(col.OrigName), ".")
+		name := tokens[len(tokens)-1]
+		columnMap[name] = col
 	}
 
 	for _, list := range insert.Lists {
 		if len(list) != len(insert.Columns) {
-			continue
+			panic("bad insert columns number")
 		}
 		for i, expr := range list {
-			if col, ok := columnMap[i]; ok {
+			colName := insert.Columns[i].Name.L
+			if col, ok := columnMap[colName]; ok {
 				v.Graph.Add(col, expr)
+				v.visitExpr(col)
 				v.visitExpr(expr)
 			}
 		}
@@ -199,9 +197,25 @@ func (v *CastGraphBuilder) visitPhysicalPlan(plans ...plannercore.PhysicalPlan) 
 			v.visitExpr(p.AccessConditions...)
 			v.Handles = append(v.Handles, p.Handles...)
 		case *plannercore.PhysicalStreamAgg:
+			for _, fn := range p.AggFuncs {
+				v.visitExpr(fn.Args...)
+			}
 			v.visitExpr(p.GroupByItems...)
 		case *plannercore.PhysicalHashAgg:
+			for _, fn := range p.AggFuncs {
+				v.visitExpr(fn.Args...)
+			}
 			v.visitExpr(p.GroupByItems...)
+		case *plannercore.PhysicalHashJoin:
+			for _, fn := range p.EqualConditions {
+				v.visitExpr(fn)
+			}
+		case *plannercore.PhysicalSort:
+			exprs := []Expr{}
+			for _, by := range p.ByItems {
+				exprs = append(exprs, by.Expr)
+			}
+			v.visitExpr(exprs...)
 		default:
 		}
 	}

@@ -110,10 +110,12 @@ func (m *NameMap) ColumnName(name *ast.ColumnName) *ast.ColumnName {
 func (m *NameMap) Table(from string) string {
 	if m.currentDB != "" && !strings.Contains(from, ".") {
 		from = fmt.Sprintf("%s.%s", m.currentDB, from)
+		to, _ := nameMapFind(from, m.Tables)
+		return strings.Split(to, ".")[1]
+	} else {
+		to, _ := nameMapFind(from, m.Tables)
+		return to
 	}
-
-	to, _ := nameMapFind(from, m.Tables)
-	return to
 }
 
 func (m *NameMap) TableName(name *ast.TableName) *ast.TableName {
