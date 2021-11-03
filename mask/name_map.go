@@ -133,3 +133,10 @@ func (m *NameMap) TableName(name *ast.TableName) *ast.TableName {
 	}
 	return name
 }
+
+func (m *NameMap) DB(from string) string {
+	if to, ok := m.DBs[from]; ok {
+		return to
+	}
+	return from
+}

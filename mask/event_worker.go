@@ -41,7 +41,7 @@ func (w *EventWorker) PrepareOne(stmtID uint64, sql string) (string, error) {
 
 	newSQL := sql
 	if localNameMap != nil {
-		stmtNode, err := w.db.ParseOne(sql) // todo: this node does not contains db info
+		stmtNode, err := w.db.ParseOne(sql)
 		if err != nil {
 			return "", err
 		}
@@ -125,6 +125,10 @@ func (w *EventWorker) MaskOne(ev event.MySQLEvent) (event.MySQLEvent, error) {
 	switch ev.Type {
 	case event.EventHandshake:
 		w.preparedStmts = make(PreparedMap)
+		w.db.UseDB(ev.DB)
+		if w.globalNameMap != nil {
+			ev.DB = w.globalNameMap.DB(ev.DB)
+		}
 
 	case event.EventQuery:
 		maskedQuery, err := w.maskOneQuery(ev.Query)

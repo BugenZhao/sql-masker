@@ -26,7 +26,7 @@ func prepareDB() error {
 	}
 
 	_ = db.Execute(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s`", globalOption.DB))
-	_ = db.Execute(fmt.Sprintf("USE `%s`", globalOption.DB))
+	_ = db.UseDB(globalOption.DB)
 
 	for _, dir := range globalOption.DDLDir {
 		ddls := make(chan string)
@@ -64,7 +64,7 @@ func NewPreparedTiDBContext() (*tidb.Context, error) {
 	if err != nil {
 		return nil, err
 	}
-	_ = db.Execute(fmt.Sprintf("USE `%s`", globalOption.DB))
+	_ = db.UseDB(globalOption.DB)
 
 	for _, dir := range globalOption.PrepareDir {
 		ddls := make(chan string)

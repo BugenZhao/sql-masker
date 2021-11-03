@@ -102,3 +102,7 @@ func (db *Context) RestoreSQL(node ast.Node) (string, error) {
 func (db *Context) CurrentDB() string {
 	return db.qctx.GetSessionVars().CurrentDB
 }
+
+func (db *Context) UseDB(dbName string) error {
+	return db.Execute(fmt.Sprintf("USE `%s`", dbName))
+}
