@@ -136,9 +136,9 @@ func (opt *EventOption) Run() error {
 			zap.S().Warnw("mask error", "progress", progress, "file", result.from, "error", result.err)
 		} else {
 			zap.S().Infow("mask done", "progress", progress, "from", result.from, "to", result.to, "stats", result.stats.String())
+			stats.Merge(*result.stats)
 		}
 		i += 1
-		stats.Merge(*result.stats)
 	}
 
 	zap.S().Infow("all done", "files", all, "stats", stats, "time", time.Since(startTime).String())
