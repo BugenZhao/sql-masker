@@ -181,6 +181,10 @@ func (v *CastGraphBuilder) visitPhysicalPlan(plans ...plannercore.PhysicalPlan) 
 		}
 		v.visitPhysicalPlan(plan.Children()...)
 
+		for _, col := range plan.Schema().Columns {
+			v.visitExpr(col)
+		}
+
 		switch p := plan.(type) {
 		case *plannercore.PhysicalTableReader:
 			v.visitPhysicalPlan(p.TablePlans...)
