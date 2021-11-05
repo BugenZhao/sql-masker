@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestItWorks(t *testing.T) {
+func TestNameMap(t *testing.T) {
 	t.Parallel()
 
 	columns := map[string]string{
@@ -24,14 +24,14 @@ func TestItWorks(t *testing.T) {
 	}
 	local, _ := NewLocalNameMap(global, localColumns, "test")
 
-	require.Equal(t, local.Column("unknown"), "unknown")
-	require.Equal(t, local.Column("id"), "col0")
-	require.Equal(t, local.Column("t1.id"), "t1.col0")
-	require.Equal(t, local.Column("t.id"), "table0.col0")
-	require.Equal(t, local.Column("t.unknown"), "t.unknown")
-	require.Equal(t, local.Column("unknown.id"), "unknown.col0")
-	require.Equal(t, local.Column("test.t.id"), "db0.table0.col0")
+	require.Equal(t, local.column("unknown"), "_hldgmah")
+	require.Equal(t, local.column("id"), "col0")
+	require.Equal(t, local.column("t1.id"), "_h1y98qyh.col0")
+	require.Equal(t, local.column("t.id"), "table0.col0")
+	require.Equal(t, local.column("t.unknown"), "_hof3tpq._hldgmah")
+	require.Equal(t, local.column("unknown.id"), "_hldgmah.col0")
+	require.Equal(t, local.column("test.t.id"), "db0.table0.col0")
 
-	require.Equal(t, local.Table("test.t"), "db0.table0")
-	require.Equal(t, local.Table("t"), "table0")
+	require.Equal(t, local.table("test.t"), "db0.table0")
+	require.Equal(t, local.table("t"), "table0")
 }

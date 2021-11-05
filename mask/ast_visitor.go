@@ -190,6 +190,22 @@ func (v *RestoreVisitor) Leave(in ast.Node) (_ ast.Node, ok bool) {
 			col = v.nameMap.ColumnName(col)
 			return col, true
 		}
+		if tab, ok := in.(*ast.TableSource); ok {
+			if tab.AsName.L != "" {
+				tableName := &ast.TableName{Name: tab.AsName}
+				tableName = v.nameMap.TableName(tableName)
+				tab.AsName = tableName.Name
+			}
+			return tab, true
+		}
+		if field, ok := in.(*ast.SelectField); ok {
+			if field.AsName.L != "" {
+				columnName := &ast.ColumnName{Name: field.AsName}
+				columnName = v.nameMap.ColumnName(columnName)
+				field.AsName = columnName.Name
+			}
+			return field, true
+		}
 		if tab, ok := in.(*ast.TableName); ok {
 			tab = v.nameMap.TableName(tab)
 			return tab, true
@@ -198,7 +214,7 @@ func (v *RestoreVisitor) Leave(in ast.Node) (_ ast.Node, ok bool) {
 			newHintTables := []ast.HintTable{}
 			for _, table := range hint.Tables {
 				table.DBName = model.NewCIStr(v.nameMap.DB(table.DBName.L))
-				table.TableName = model.NewCIStr(v.nameMap.Table(table.TableName.L))
+				table.TableName = model.NewCIStr(v.nameMap.table(table.TableName.L))
 				newHintTables = append(newHintTables, table)
 			}
 			hint.Tables = newHintTables
