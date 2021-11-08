@@ -1,67 +1,22 @@
 package mask
 
 import (
-	"encoding/binary"
 	"fmt"
-	"strconv"
 	"strings"
 
+	"github.com/BugenZhao/sql-masker/dict"
 	"github.com/pingcap/parser/ast"
 	"github.com/pingcap/parser/model"
 	"github.com/pingcap/tidb/expression"
-	"github.com/zeebo/blake3"
 )
 
 const (
 	defaultContext = "tidb"
+	defaultPrefix  = "_h"
 )
 
-func NewDictionary() *dictionary {
-	return &dictionary{
-		hasher: blake3.NewDeriveKey(defaultContext),
-		dict:   make(map[string]uint32),
-		values: make(map[uint32]bool),
-	}
-}
-
-type dictionary struct {
-	hasher *blake3.Hasher
-
-	dict   map[string]uint32
-	values map[uint32]bool
-}
-
-func (d *dictionary) get(key string) string {
-	if value, ok := d.dict[key]; ok {
-		return fmt.Sprintf("_h%s", strconv.FormatUint(uint64(value), 36))
-	}
-	return ""
-}
-
-func (d *dictionary) Map(key string) string {
-	value := d.get(key)
-	if value != "" {
-		return value
-	}
-
-	d.hasher.Reset()
-	_, _ = d.hasher.Write([]byte(key))
-	sum := make([]byte, 4)
-	_, err := d.hasher.Digest().Read(sum)
-	if err != nil {
-		panic(err)
-	}
-	u := binary.LittleEndian.Uint32(sum)
-
-	for {
-		if d.values[u] {
-			u += 1
-			continue
-		}
-		d.values[u] = true
-		d.dict[key] = u
-		return d.get(key)
-	}
+func NewDefaultDictionary() *dict.Dictionary {
+	return dict.NewDictionary(defaultContext, defaultPrefix)
 }
 
 func NewGlobalNameMap(columns map[string]string) *NameMap {
@@ -105,7 +60,7 @@ func NewLocalNameMap(global *NameMap, columnsSubSet []*expression.Column, curren
 		Tables:    global.Tables,
 		Columns:   columns,
 		currentDB: currentDB,
-		dict:      NewDictionary(),
+		dict:      NewDefaultDictionary(),
 	}, nil
 }
 
@@ -114,7 +69,7 @@ type NameMap struct {
 	Tables  map[string]string `json:"tables"`
 	Columns map[string]string `json:"columns"`
 
-	dict      *dictionary
+	dict      *dict.Dictionary
 	currentDB string
 }
 
