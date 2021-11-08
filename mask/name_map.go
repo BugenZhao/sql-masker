@@ -11,12 +11,12 @@ import (
 )
 
 const (
-	defaultContext = "tidb"
-	defaultPrefix  = "_h"
+	defaultHashContext = "tidb"
+	defaultPrefix      = "_h"
 )
 
 func NewDefaultDictionary() *dict.Dictionary {
-	return dict.NewDictionary(defaultContext, defaultPrefix)
+	return dict.NewDictionary(defaultHashContext, defaultPrefix)
 }
 
 func NewGlobalNameMap(columns map[string]string) *NameMap {

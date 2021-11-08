@@ -31,7 +31,7 @@ var globalOption = &Option{
 		Concurrency: runtime.NumCPU(),
 	},
 	NameOption: NameOption{
-		MaskedDBPrefix: "MASKED_",
+		MaskedDBPrefix: "_mdb",
 	},
 	DB:                   "test",
 	FilterOutConstraints: true,
