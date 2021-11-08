@@ -11,6 +11,7 @@ import (
 	"github.com/BugenZhao/sql-masker/mask"
 	"github.com/pingcap/parser"
 	"github.com/pingcap/parser/ast"
+	"go.uber.org/zap"
 )
 
 type NameOption struct {
@@ -95,7 +96,16 @@ func (opt *NameOption) Run() error {
 	if err != nil {
 		return err
 	}
-	os.WriteFile(opt.Output, bytes, 0666)
+	err = os.WriteFile(opt.Output, bytes, 0666)
+	if err != nil {
+		return err
+	}
+
+	if len := len(nameMap.Columns); len == 0 {
+		zap.S().Warnw("empty name map, no columns found")
+	} else {
+		zap.S().Infow("generated name map", "columns", len, "path", opt.Output)
+	}
 
 	return nil
 }
