@@ -19,62 +19,44 @@ type NameOption struct {
 	Output         string `opts:"help=path to the output name map"`
 }
 
-func (opt *NameOption) handleDir(dir string, columns map[string]string) error {
-	ddls, _ := filepath.Glob(filepath.Join(dir, "*.*-schema.sql"))
+func (opt *NameOption) isMaskedInfo(info *ddlInfo) bool {
+	return strings.HasPrefix(info.db, opt.MaskedDBPrefix)
+}
 
-	origDDLs := []string{}
-	maskedDDLs := []string{}
-	for _, ddl := range ddls {
-		if strings.HasPrefix(strings.ToLower(filepath.Base(ddl)), opt.MaskedDBPrefix) {
-			maskedDDLs = append(maskedDDLs, ddl)
+func (opt *NameOption) handleDir(dir string, columns map[string]string) error {
+	ddlPaths, _ := filepath.Glob(filepath.Join(dir, "*.*-schema.sql"))
+
+	origInfos := []*ddlInfo{}
+	maskedInfos := []*ddlInfo{}
+	for _, path := range ddlPaths {
+		info, err := newDDLInfo(path)
+		if err != nil {
+			return err
+		}
+		if opt.isMaskedInfo(info) {
+			maskedInfos = append(maskedInfos, info)
 		} else {
-			origDDLs = append(origDDLs, ddl)
+			origInfos = append(origInfos, info)
 		}
 	}
 
-	if len(origDDLs) != len(maskedDDLs) {
+	if len(origInfos) != len(maskedInfos) {
 		return fmt.Errorf("bad number of masked ddls")
 	}
-	sort.Strings(origDDLs)
-	sort.Strings(maskedDDLs)
+	sort.Sort(bySchemaName(origInfos))
+	sort.Sort(bySchemaName(maskedInfos))
 
-	p := parser.New()
-	extract := func(path string) (string, *ast.CreateTableStmt, error) {
-		base := filepath.Base(path)
-		prefix := strings.ToLower(strings.TrimSuffix(base, "-schema.sql"))
+	for i := range origInfos {
+		o := origInfos[i]
+		m := maskedInfos[i]
 
-		bytes, err := os.ReadFile(path)
-		if err != nil {
-			return prefix, nil, err
-		}
-		str := string(bytes)
-		node, err := p.ParseOneStmt(str, "", "")
-		if err != nil {
-			return prefix, nil, err
-		}
-		if create, ok := node.(*ast.CreateTableStmt); ok {
-			return prefix, create, nil
-		}
-		return prefix, nil, fmt.Errorf("not a create table statement in `%s`", path)
-	}
-
-	for i := range origDDLs {
-		oPrefix, o, err := extract(origDDLs[i])
-		if err != nil {
-			return err
-		}
-		mPrefix, m, err := extract(maskedDDLs[i])
-		if err != nil {
-			return err
+		if len(o.stmt.Cols) != len(m.stmt.Cols) {
+			return fmt.Errorf("bad number of columns for `%s` and `%s`", o.Prefix(), m.Prefix())
 		}
 
-		if len(o.Cols) != len(m.Cols) {
-			return fmt.Errorf("bad number of columns for `%s` and `%s`", oPrefix, mPrefix)
-		}
-
-		for j := range o.Cols {
-			oCol := fmt.Sprintf("%s.%s", oPrefix, o.Cols[j].Name.Name.L)
-			mCol := fmt.Sprintf("%s.%s", mPrefix, m.Cols[j].Name.Name.L)
+		for j := range o.stmt.Cols {
+			oCol := fmt.Sprintf("%s.%s", o.Prefix(), o.stmt.Cols[j].Name.Name.L)
+			mCol := fmt.Sprintf("%s.%s", m.Prefix(), m.stmt.Cols[j].Name.Name.L)
 			columns[oCol] = mCol
 		}
 	}
@@ -109,3 +91,54 @@ func (opt *NameOption) Run() error {
 
 	return nil
 }
+
+func newDDLInfo(path string) (*ddlInfo, error) {
+	base := filepath.Base(path)
+	prefix := strings.ToLower(strings.TrimSuffix(base, "-schema.sql"))
+
+	tokens := strings.Split(prefix, ".")
+	if len(tokens) != 2 {
+		return nil, fmt.Errorf("bad schema file name: `%s`", base)
+	}
+	db, table := tokens[0], tokens[1]
+
+	bytes, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	str := string(bytes)
+	p := parser.New()
+	node, err := p.ParseOneStmt(str, "", "")
+	if err != nil {
+		return nil, err
+	}
+
+	if create, ok := node.(*ast.CreateTableStmt); ok {
+		return &ddlInfo{
+			db, table, create,
+		}, nil
+	}
+	return nil, fmt.Errorf("not a create table statement in `%s`", path)
+}
+
+type ddlInfo struct {
+	db    string
+	table string
+	stmt  *ast.CreateTableStmt
+}
+
+func (info *ddlInfo) Prefix() string {
+	return fmt.Sprintf("%s.%s", info.db, info.table)
+}
+
+type bySchemaName []*ddlInfo
+
+func (infos bySchemaName) Len() int { return len(infos) }
+func (infos bySchemaName) Less(i, j int) bool {
+	if infos[i].db == infos[j].db {
+		return infos[i].table < infos[j].table
+	} else {
+		return infos[i].db < infos[j].db
+	}
+}
+func (infos bySchemaName) Swap(i, j int) { infos[i], infos[j] = infos[j], infos[i] }
