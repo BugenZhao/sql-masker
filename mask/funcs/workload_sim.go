@@ -226,6 +226,16 @@ func WorkloadSimMask(datum types.Datum, tp *types.FieldType) (types.Datum, *type
 		datum.SetMysqlEnum(e, datum.Collation())
 		return datum, tp, nil
 
+	case types.KindMysqlSet:
+		s := datum.GetMysqlSet()
+		var items []string
+		for _, e := range strings.Split(s.Name, ",") {
+			items = append(items, maskString([]byte(e)))
+		}
+		s.Name = strings.Join(items, ",")
+		datum.SetMysqlSet(s, datum.Collation())
+		return datum, tp, nil
+
 	case types.KindMysqlDuration:
 		d := maskDuration(datum.GetMysqlDuration())
 		datum.SetMysqlDuration(d)
