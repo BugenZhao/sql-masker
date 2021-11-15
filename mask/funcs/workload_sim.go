@@ -175,19 +175,60 @@ func maskString(s []byte) string {
 }
 
 func maskDuration(d types.Duration) types.Duration {
-	secs := int64(d.Duration.Seconds()) / 3600 * 3600
-	d.Duration = gotime.Duration(secs) * gotime.Second
-	return d
+	fsp := d.Fsp
+	maskedDuration := maskInt64(int64(d.Duration))
+	return types.Duration{
+		Duration: gotime.Duration(maskedDuration),
+		Fsp:      fsp,
+	}
 }
 
 func maskTime(t types.Time) (types.Time, error) {
-	year := t.Year()
-	month := t.Month()
-	day := t.Day()
 	fsp := t.Fsp()
 	tp := t.Type()
 
-	return types.ParseTime(maskStmtCtx, fmt.Sprintf("%v-%v-%v", year, month, day), tp, fsp)
+	uncheckedTime := maskUint64(uint64(t.CoreTime()))
+	t.SetCoreTime(types.CoreTime(uncheckedTime))
+
+	year := 0
+	switch tp {
+	case mysql.TypeDate, mysql.TypeDatetime:
+		year = t.Year() % 10000 // 0..9999
+	case mysql.TypeTimestamp:
+		// Hack! the timestampe is the number of non-leap seconds since January 1, 1970 0:00:00 UTC (aka "UNIX timestamp").
+		// the valid range is 0..(1 << 31) - 1, 2035 is an approximately upper bound
+		year = t.Year()%(2036-1970) + 1970 // 1970..2035
+	}
+	month := (t.Month() % 12) + 1                      // 1..12
+	day := (t.Day() % lastDayOfMonth(year, month)) + 1 // 1..28/29/30/31
+	hour := t.Hour() % 24                              // 0..23
+	minute := t.Minute() % 60                          // 0..59
+	second := t.Second() % 60                          // 0..59
+	micro := t.Microsecond() % 1000000                 // 0..999999
+
+	maskedTime := types.NewTime(types.FromDate(year, month, day, hour, minute, second, micro), tp, fsp)
+
+	// TODO: get a `StatementContext` and do checking here
+	// err := maskedTime.Check(ctx)
+
+	return maskedTime, nil
+}
+
+func lastDayOfMonth(year, month int) int {
+	day := 0
+	switch month {
+	case 4, 6, 9, 11:
+		day = 30
+	case 2:
+		day = 28
+		//  leap year
+		if (year%4 == 0 && year%100 != 0) || year%400 == 0 {
+			day += 1
+		}
+	default:
+		day = 31
+	}
+	return day
 }
 
 func WorkloadSimMask(datum types.Datum, tp *types.FieldType) (types.Datum, *types.FieldType, error) {
