@@ -105,10 +105,22 @@ func maskInt64(from int64) int64 {
 	}
 }
 
-// todo: this is almost nonsense since it often leads to unreasonable exponent
-func hashFloat64(f float64) float64 {
-	u := hashUint64(f)
-	return math.Float64frombits(u)
+func hashFloat64(f float64) (float64, error) {
+	neg := f < 0
+	// If the fraction precision is less than the default precision 6, there will
+	// be some extra `0` padding like 12.300000, so `TrimSuffix` here
+	tokens := strings.Split(strings.TrimSuffix(fmt.Sprintf("%f", f), "0"), ".")
+	maskedFloat := hashFloat64Raw(f)
+	frac := 0
+	if len(tokens) >= 2 {
+		frac = len(tokens[1])
+	}
+	res := formatFloat(maskedFloat, neg, len(tokens[0]), frac)
+	f, err := strconv.ParseFloat(res, 64)
+	if err != nil {
+		return f, err
+	}
+	return f, nil
 }
 
 // todo: this is NOT PURE, unused
@@ -118,49 +130,59 @@ func maskFloat64Laplace(f float64) float64 {
 	return f
 }
 
-// todo: same as hashFloat64, really a bad job, unused
+func hashFloat64Raw(f float64) float64 {
+	f = math.Float64frombits(hashUint64(f))
+	if math.IsNaN(f) || math.IsInf(f, 0) {
+		f = 0
+	}
+	return f
+}
+
+func formatFloat(f float64, neg bool, intNum, frac int) string {
+	if intNum < 1 {
+		intNum = 1
+	}
+	// If the fraction precision is less than the default precision 6, there will
+	// be some extra `0` padding like 12.300000, so `TrimSuffix` here
+	tokens := strings.Split(strings.TrimSuffix(fmt.Sprintf("%f", f), "0"), ".")
+
+	left := tokens[0]
+	if len(left) > intNum {
+		// Take the first `intNum` digits
+		left = left[:intNum]
+	}
+
+	right := ""
+	if len(tokens) >= 2 {
+		if len(tokens[1]) > frac {
+			// Take the last `frac` digits
+			right = right[len(tokens[1])-frac:]
+		} else {
+			right = tokens[1]
+		}
+	}
+
+	res := left
+	if len(right) != 0 {
+		res = fmt.Sprintf("%s.%s", res, right)
+	}
+	if neg {
+		res = fmt.Sprintf("-%s", res)
+	}
+	return res
+}
+
 func hashDecimal(d *types.MyDecimal) (*types.MyDecimal, error) {
 	prec, frac := d.PrecisionAndFrac()
+	neg := d.IsNegative()
 	f, err := d.ToFloat64()
 	if err != nil {
 		return nil, err
 	}
-	f = hashFloat64(f)
-
-	if math.IsNaN(f) || math.IsInf(f, 0) {
-		f = 0
-	}
-
-	neg := f < 0
-	f = math.Abs(f)
-	s := strconv.FormatFloat(f, 'f', frac, 64)
-	tokens := strings.Split(s, ".")
-
-	left := tokens[0]
-	if len(left) > prec-frac {
-		left = left[len(left)-(prec-frac):]
-	}
-	right := "0"
-	if len(tokens) >= 2 {
-		right = tokens[1]
-	}
-	if len(right) > frac {
-		right = right[:frac]
-	}
-
-	prefix := ""
-	if neg {
-		prefix = "-"
-	}
-	if right == "" {
-		s = fmt.Sprintf("%s%s", prefix, left)
-	} else {
-		s = fmt.Sprintf("%s%s.%s", prefix, left, right)
-	}
-
-	err = d.FromString([]byte(s))
+	res := formatFloat(hashFloat64Raw(f), neg, prec-frac, frac)
+	err = d.FromString([]byte(res))
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse decimal `%s`; %w", s, err)
+		return nil, fmt.Errorf("failed to parse decimal `%s`; %w", res, err)
 	}
 	return d, nil
 }
@@ -242,13 +264,19 @@ func WorkloadSimMask(datum types.Datum, tp *types.FieldType) (types.Datum, *type
 		return datum, tp, nil
 
 	case types.KindFloat64:
-		f := hashFloat64(datum.GetFloat64())
+		f, err := hashFloat64(datum.GetFloat64())
+		if err != nil {
+			return datum, tp, err
+		}
 		datum.SetFloat64(f)
 		return datum, tp, nil
 
 	case types.KindFloat32:
-		f := float32(hashFloat64(float64(datum.GetFloat32())))
-		datum.SetFloat32(f)
+		f64, err := hashFloat64(float64(datum.GetFloat32()))
+		if err != nil {
+			return datum, tp, err
+		}
+		datum.SetFloat32(float32(f64))
 		return datum, tp, nil
 
 	case types.KindString:
