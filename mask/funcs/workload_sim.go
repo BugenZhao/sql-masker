@@ -105,10 +105,22 @@ func maskInt64(from int64) int64 {
 	}
 }
 
-// todo: this is almost nonsense since it often leads to unreasonable exponent
-func hashFloat64(f float64) float64 {
-	u := hashUint64(f)
-	return math.Float64frombits(u)
+func hashFloat64(f float64) (float64, error) {
+	neg := f < 0
+	// If the fraction precision is less than the default precision 6, there will
+	// be some extra `0` padding like 12.300000, so `TrimSuffix` here
+	tokens := strings.Split(strings.TrimSuffix(fmt.Sprintf("%f", f), "0"), ".")
+	maskedFloat := hashFloat64Raw(f)
+	frac := 0
+	if len(tokens) >= 2 {
+		frac = len(tokens[1])
+	}
+	res := formatFloat(maskedFloat, neg, len(tokens[0]), frac)
+	f, err := strconv.ParseFloat(res, 64)
+	if err != nil {
+		return f, err
+	}
+	return f, nil
 }
 
 // todo: this is NOT PURE, unused
@@ -118,49 +130,59 @@ func maskFloat64Laplace(f float64) float64 {
 	return f
 }
 
-// todo: same as hashFloat64, really a bad job, unused
+func hashFloat64Raw(f float64) float64 {
+	f = math.Float64frombits(hashUint64(f))
+	if math.IsNaN(f) || math.IsInf(f, 0) {
+		f = 0
+	}
+	return f
+}
+
+func formatFloat(f float64, neg bool, intNum, frac int) string {
+	if intNum < 1 {
+		intNum = 1
+	}
+	// If the fraction precision is less than the default precision 6, there will
+	// be some extra `0` padding like 12.300000, so `TrimSuffix` here
+	tokens := strings.Split(strings.TrimSuffix(fmt.Sprintf("%f", f), "0"), ".")
+
+	left := tokens[0]
+	if len(left) > intNum {
+		// Take the first `intNum` digits
+		left = left[:intNum]
+	}
+
+	right := ""
+	if len(tokens) >= 2 {
+		if len(tokens[1]) > frac {
+			// Take the last `frac` digits
+			right = right[len(tokens[1])-frac:]
+		} else {
+			right = tokens[1]
+		}
+	}
+
+	res := left
+	if len(right) != 0 {
+		res = fmt.Sprintf("%s.%s", res, right)
+	}
+	if neg {
+		res = fmt.Sprintf("-%s", res)
+	}
+	return res
+}
+
 func hashDecimal(d *types.MyDecimal) (*types.MyDecimal, error) {
 	prec, frac := d.PrecisionAndFrac()
+	neg := d.IsNegative()
 	f, err := d.ToFloat64()
 	if err != nil {
 		return nil, err
 	}
-	f = hashFloat64(f)
-
-	if math.IsNaN(f) || math.IsInf(f, 0) {
-		f = 0
-	}
-
-	neg := f < 0
-	f = math.Abs(f)
-	s := strconv.FormatFloat(f, 'f', frac, 64)
-	tokens := strings.Split(s, ".")
-
-	left := tokens[0]
-	if len(left) > prec-frac {
-		left = left[len(left)-(prec-frac):]
-	}
-	right := "0"
-	if len(tokens) >= 2 {
-		right = tokens[1]
-	}
-	if len(right) > frac {
-		right = right[:frac]
-	}
-
-	prefix := ""
-	if neg {
-		prefix = "-"
-	}
-	if right == "" {
-		s = fmt.Sprintf("%s%s", prefix, left)
-	} else {
-		s = fmt.Sprintf("%s%s.%s", prefix, left, right)
-	}
-
-	err = d.FromString([]byte(s))
+	res := formatFloat(hashFloat64Raw(f), neg, prec-frac, frac)
+	err = d.FromString([]byte(res))
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse decimal `%s`; %w", s, err)
+		return nil, fmt.Errorf("failed to parse decimal `%s`; %w", res, err)
 	}
 	return d, nil
 }
@@ -175,19 +197,60 @@ func maskString(s []byte) string {
 }
 
 func maskDuration(d types.Duration) types.Duration {
-	secs := int64(d.Duration.Seconds()) / 3600 * 3600
-	d.Duration = gotime.Duration(secs) * gotime.Second
-	return d
+	fsp := d.Fsp
+	maskedDuration := maskInt64(int64(d.Duration))
+	return types.Duration{
+		Duration: gotime.Duration(maskedDuration),
+		Fsp:      fsp,
+	}
 }
 
 func maskTime(t types.Time) (types.Time, error) {
-	year := t.Year()
-	month := t.Month()
-	day := t.Day()
 	fsp := t.Fsp()
 	tp := t.Type()
 
-	return types.ParseTime(maskStmtCtx, fmt.Sprintf("%v-%v-%v", year, month, day), tp, fsp)
+	uncheckedTime := maskUint64(uint64(t.CoreTime()))
+	t.SetCoreTime(types.CoreTime(uncheckedTime))
+
+	year := 0
+	switch tp {
+	case mysql.TypeDate, mysql.TypeDatetime:
+		year = t.Year() % 10000 // 0..9999
+	case mysql.TypeTimestamp:
+		// Hack! the timestampe is the number of non-leap seconds since January 1, 1970 0:00:00 UTC (aka "UNIX timestamp").
+		// the valid range is 0..(1 << 31) - 1, 2035 is an approximately upper bound
+		year = t.Year()%(2036-1970) + 1970 // 1970..2035
+	}
+	month := (t.Month() % 12) + 1                      // 1..12
+	day := (t.Day() % lastDayOfMonth(year, month)) + 1 // 1..28/29/30/31
+	hour := t.Hour() % 24                              // 0..23
+	minute := t.Minute() % 60                          // 0..59
+	second := t.Second() % 60                          // 0..59
+	micro := t.Microsecond() % 1000000                 // 0..999999
+
+	maskedTime := types.NewTime(types.FromDate(year, month, day, hour, minute, second, micro), tp, fsp)
+
+	// TODO: get a `StatementContext` and do checking here
+	// err := maskedTime.Check(ctx)
+
+	return maskedTime, nil
+}
+
+func lastDayOfMonth(year, month int) int {
+	day := 0
+	switch month {
+	case 4, 6, 9, 11:
+		day = 30
+	case 2:
+		day = 28
+		//  leap year
+		if (year%4 == 0 && year%100 != 0) || year%400 == 0 {
+			day += 1
+		}
+	default:
+		day = 31
+	}
+	return day
 }
 
 func WorkloadSimMask(datum types.Datum, tp *types.FieldType) (types.Datum, *types.FieldType, error) {
@@ -201,13 +264,19 @@ func WorkloadSimMask(datum types.Datum, tp *types.FieldType) (types.Datum, *type
 		return datum, tp, nil
 
 	case types.KindFloat64:
-		f := hashFloat64(datum.GetFloat64())
+		f, err := hashFloat64(datum.GetFloat64())
+		if err != nil {
+			return datum, tp, err
+		}
 		datum.SetFloat64(f)
 		return datum, tp, nil
 
 	case types.KindFloat32:
-		f := float32(hashFloat64(float64(datum.GetFloat32())))
-		datum.SetFloat32(f)
+		f64, err := hashFloat64(float64(datum.GetFloat32()))
+		if err != nil {
+			return datum, tp, err
+		}
+		datum.SetFloat32(float32(f64))
 		return datum, tp, nil
 
 	case types.KindString:
