@@ -107,10 +107,12 @@ func maskInt64(from int64) int64 {
 
 func hashFloat64(f float64) (float64, error) {
 	neg := f < 0
+	f = math.Abs(f)
 	// If the fraction precision is less than the default precision 6, there will
-	// be some extra `0` padding like 12.300000, so `TrimSuffix` here
-	tokens := strings.Split(strings.TrimSuffix(fmt.Sprintf("%f", f), "0"), ".")
+	// be some extra `0` padding like 12.300000, so `TrimRight` here
+	tokens := strings.Split(strings.TrimRight(fmt.Sprintf("%f", f), "0"), ".")
 	maskedFloat := hashFloat64Raw(f)
+
 	frac := 0
 	if len(tokens) >= 2 {
 		frac = len(tokens[1])
@@ -131,41 +133,38 @@ func maskFloat64Laplace(f float64) float64 {
 }
 
 func hashFloat64Raw(f float64) float64 {
-	f = math.Float64frombits(hashUint64(f))
+	u := hashUint64(f)
+	f = math.Float64frombits(u)
 	if math.IsNaN(f) || math.IsInf(f, 0) {
-		f = 0
+		f = float64(u)
 	}
 	return f
 }
 
+var floatReplacer = strings.NewReplacer(".", "", "e+", "", "e-", "")
+
 func formatFloat(f float64, neg bool, intNum, frac int) string {
+	f = math.Abs(f)
 	if intNum < 1 {
 		intNum = 1
 	}
-	// If the fraction precision is less than the default precision 6, there will
-	// be some extra `0` padding like 12.300000, so `TrimSuffix` here
-	tokens := strings.Split(strings.TrimSuffix(fmt.Sprintf("%f", f), "0"), ".")
 
-	left := tokens[0]
-	if len(left) > intNum {
-		// Take the first `intNum` digits
-		left = left[:intNum]
+	str := floatReplacer.Replace(fmt.Sprintf("%v", f))
+
+	// fill "0" to trail
+	if len(str) < intNum+frac {
+		str += strings.Repeat("0", intNum+frac-len(str))
 	}
+	left := str[:intNum]
+	right := str[intNum : intNum+frac]
 
-	right := ""
-	if len(tokens) >= 2 {
-		if len(tokens[1]) > frac {
-			// Take the last `frac` digits
-			right = right[len(tokens[1])-frac:]
-		} else {
-			right = tokens[1]
-		}
-	}
-
-	res := left
+	var res string
 	if len(right) != 0 {
-		res = fmt.Sprintf("%s.%s", res, right)
+		res = fmt.Sprintf("%s.%s", left, right)
+	} else {
+		res = left
 	}
+
 	if neg {
 		res = fmt.Sprintf("-%s", res)
 	}
@@ -173,17 +172,20 @@ func formatFloat(f float64, neg bool, intNum, frac int) string {
 }
 
 func hashDecimal(d *types.MyDecimal) (*types.MyDecimal, error) {
-	prec, frac := d.PrecisionAndFrac()
 	neg := d.IsNegative()
+	prec, frac := d.PrecisionAndFrac()
 	f, err := d.ToFloat64()
 	if err != nil {
 		return nil, err
 	}
+	f = math.Abs(f)
+
 	res := formatFloat(hashFloat64Raw(f), neg, prec-frac, frac)
 	err = d.FromString([]byte(res))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse decimal `%s`; %w", res, err)
 	}
+
 	return d, nil
 }
 
@@ -196,13 +198,15 @@ func maskString(s []byte) string {
 	return hex
 }
 
-func maskDuration(d types.Duration) types.Duration {
+func maskDuration(d types.Duration) (types.Duration, error) {
 	fsp := d.Fsp
-	maskedDuration := maskInt64(int64(d.Duration))
+	// hack: 3e15 is slightly smaller than the max duration (838:59:59) * 10^9 nanosecs
+	maskedDuration := maskInt64(int64(d.Duration)) % 3e15
+
 	return types.Duration{
 		Duration: gotime.Duration(maskedDuration),
-		Fsp:      fsp,
-	}
+		Fsp:      6,
+	}.RoundFrac(fsp, gotime.UTC) // call RoundFrac to round the `gotime.Duration`
 }
 
 func maskTime(t types.Time) (types.Time, error) {
@@ -279,6 +283,14 @@ func WorkloadSimMask(datum types.Datum, tp *types.FieldType) (types.Datum, *type
 		datum.SetFloat32(float32(f64))
 		return datum, tp, nil
 
+	case types.KindMysqlDecimal:
+		d, err := hashDecimal(datum.GetMysqlDecimal())
+		if err != nil {
+			return datum, tp, err
+		}
+		datum.SetMysqlDecimal(d)
+		return datum, tp, nil
+
 	case types.KindString:
 		s := maskString([]byte(datum.GetString()))
 		datum.SetString(s, datum.Collation())
@@ -306,7 +318,10 @@ func WorkloadSimMask(datum types.Datum, tp *types.FieldType) (types.Datum, *type
 		return datum, tp, nil
 
 	case types.KindMysqlDuration:
-		d := maskDuration(datum.GetMysqlDuration())
+		d, err := maskDuration(datum.GetMysqlDuration())
+		if err != nil {
+			return datum, tp, err
+		}
 		datum.SetMysqlDuration(d)
 		return datum, tp, nil
 
