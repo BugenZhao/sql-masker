@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	gotime "time"
+	"unicode"
 
 	lj "github.com/LianjiaTech/d18n/mask"
 	"github.com/pingcap/parser/mysql"
@@ -141,15 +142,19 @@ func hashFloat64Raw(f float64) float64 {
 	return f
 }
 
-var floatReplacer = strings.NewReplacer(".", "", "e+", "", "e-", "")
-
 func formatFloat(f float64, neg bool, intNum, frac int) string {
 	f = math.Abs(f)
 	if intNum < 1 {
 		intNum = 1
 	}
 
-	str := floatReplacer.Replace(fmt.Sprintf("%v", f))
+	sb := strings.Builder{}
+	for _, c := range fmt.Sprintf("%.10e", f) {
+		if unicode.IsNumber(c) {
+			_, _ = sb.WriteRune(c)
+		}
+	}
+	str := sb.String()
 
 	// fill "0" to trail
 	if len(str) < intNum+frac {

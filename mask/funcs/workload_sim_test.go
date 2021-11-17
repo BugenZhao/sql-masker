@@ -47,6 +47,10 @@ func TestWorkloadSimMask(t *testing.T) {
 		{types.NewFloat64Datum(-42.42), types.NewFloat64Datum(-78.18)},
 		{types.NewFloat64Datum(4242), types.NewFloat64Datum(1188)},
 		{types.NewFloat64Datum(0.4242), types.NewFloat64Datum(1.0003)},
+		{types.NewFloat64Datum(4.2e10), types.NewFloat64Datum(3.0508343005e+10)},
+		{types.NewFloat64Datum(4.2e20), types.NewFloat64Datum(1.5036856769116e+20)},
+		{types.NewFloat64Datum(4.2e-10), types.NewFloat64Datum(2)},
+		{types.NewFloat64Datum(4.2e-20), types.NewFloat64Datum(9)},
 
 		{types.NewFloat32Datum(42.42), types.NewFloat32Datum(97.13432)},
 
