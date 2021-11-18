@@ -32,6 +32,7 @@ TypeDate        byte = 10
 
 const (
 	defaultContext = "tidb"
+	maskItemPrefix = "I"
 )
 
 var maskStmtCtx = mock.NewContext().GetSessionVars().StmtCtx
@@ -261,6 +262,14 @@ func lastDayOfMonth(year, month int) int {
 	return day
 }
 
+func maskItem(l, id int) string {
+	res := fmt.Sprintf("%s%v", maskItemPrefix, id)
+	if l > len(res) {
+		res = res + strings.Repeat("*", l-len(res))
+	}
+	return res
+}
+
 func WorkloadSimMask(datum types.Datum, tp *types.FieldType) (types.Datum, *types.FieldType, error) {
 	switch datum.Kind() {
 	case types.KindInt64:
@@ -307,15 +316,15 @@ func WorkloadSimMask(datum types.Datum, tp *types.FieldType) (types.Datum, *type
 
 	case types.KindMysqlEnum:
 		e := datum.GetMysqlEnum()
-		e.Name = maskString([]byte(e.Name))
+		e.Name = maskItem(len(e.Name), int(e.Value))
 		datum.SetMysqlEnum(e, datum.Collation())
 		return datum, tp, nil
 
 	case types.KindMysqlSet:
 		s := datum.GetMysqlSet()
 		var items []string
-		for _, e := range strings.Split(s.Name, ",") {
-			items = append(items, maskString([]byte(e)))
+		for i, e := range strings.Split(s.Name, ",") {
+			items = append(items, maskItem(len(e), i))
 		}
 		s.Name = strings.Join(items, ",")
 		datum.SetMysqlSet(s, datum.Collation())
