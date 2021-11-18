@@ -11,7 +11,6 @@ import (
 	gotime "time"
 	"unicode"
 
-	lj "github.com/LianjiaTech/d18n/mask"
 	"github.com/pingcap/parser/mysql"
 	"github.com/pingcap/tidb/types"
 	"github.com/pingcap/tidb/util/mock"
@@ -126,13 +125,6 @@ func hashFloat64(f float64) (float64, error) {
 	return f, nil
 }
 
-// todo: this is NOT PURE, unused
-func maskFloat64Laplace(f float64) float64 {
-	s, _ := lj.LaplaceDPFloat64(f, 100, 1, 1, 0)
-	f, _ = strconv.ParseFloat(s, 64)
-	return f
-}
-
 func hashFloat64Raw(f float64) float64 {
 	u := hashUint64(f)
 	f = math.Float64frombits(u)
@@ -157,11 +149,16 @@ func formatFloat(f float64, neg bool, intNum, frac int) string {
 	str := sb.String()
 
 	// fill "0" to trail
-	if len(str) < intNum+frac {
-		str += strings.Repeat("0", intNum+frac-len(str))
+	if len(str) < intNum {
+		str += strings.Repeat("0", intNum-len(str))
 	}
 	left := str[:intNum]
-	right := str[intNum : intNum+frac]
+
+	rightEnd := intNum + frac
+	if rightEnd > len(str) {
+		rightEnd = len(str)
+	}
+	right := str[intNum:rightEnd]
 
 	var res string
 	if len(right) != 0 {
@@ -196,6 +193,9 @@ func hashDecimal(d *types.MyDecimal) (*types.MyDecimal, error) {
 
 func maskString(s []byte) string {
 	size := len(s)
+	if size < 2 {
+		size = 2
+	}
 
 	sum := hashBytes([]byte(s), size/2)
 	hex := hex.EncodeToString(sum)
@@ -204,14 +204,13 @@ func maskString(s []byte) string {
 }
 
 func maskDuration(d types.Duration) (types.Duration, error) {
-	fsp := d.Fsp
 	// hack: 3e15 is slightly smaller than the max duration (838:59:59) * 10^9 nanosecs
 	maskedDuration := maskInt64(int64(d.Duration)) % 3e15
 
 	return types.Duration{
 		Duration: gotime.Duration(maskedDuration),
-		Fsp:      6,
-	}.RoundFrac(fsp, gotime.UTC) // call RoundFrac to round the `gotime.Duration`
+		Fsp:      types.MaxFsp,
+	}.RoundFrac(d.Fsp, gotime.UTC) // call RoundFrac to round the `gotime.Duration`
 }
 
 func maskTime(t types.Time) (types.Time, error) {
@@ -226,7 +225,7 @@ func maskTime(t types.Time) (types.Time, error) {
 	case mysql.TypeDate, mysql.TypeDatetime:
 		year = t.Year() % 10000 // 0..9999
 	case mysql.TypeTimestamp:
-		// Hack! the timestampe is the number of non-leap seconds since January 1, 1970 0:00:00 UTC (aka "UNIX timestamp").
+		// Hack! the timestamp is the number of non-leap seconds since January 1, 1970 0:00:00 UTC (aka "UNIX timestamp").
 		// the valid range is 0..(1 << 31) - 1, 2035 is an approximately upper bound
 		year = t.Year()%(2036-1970) + 1970 // 1970..2035
 	}
@@ -365,8 +364,3 @@ KindMaxValue      byte = 16
 KindRaw           byte = 17
 KindMysqlJSON     byte = 18
 */
-
-var (
-	_ = maskFloat64Laplace
-	_ = hashDecimal
-)

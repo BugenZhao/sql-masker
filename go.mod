@@ -17,7 +17,6 @@ require (
 	cloud.google.com/go/storage v1.16.1 // indirect
 	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/Jeffail/tunny v0.1.4
-	github.com/LianjiaTech/d18n v0.1.1
 	github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d // indirect
 	github.com/VividCortex/ewma v1.1.1 // indirect
 	github.com/aws/aws-sdk-go v1.35.3 // indirect
@@ -107,7 +106,7 @@ require (
 	github.com/soheilhy/cmux v0.1.4 // indirect
 	github.com/spf13/cobra v1.1.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/stretchr/testify v1.7.0 // indirect
+	github.com/stretchr/testify v1.7.0
 	github.com/syndtr/goleveldb v1.0.1-0.20190318030020-c3a204f8e965 // indirect
 	github.com/tiancaiamao/appdash v0.0.0-20181126055449-889f96f722a2 // indirect
 	github.com/tikv/client-go/v2 v2.0.0-alpha.0.20210926100628-3cc2459779ca // indirect
@@ -149,61 +148,6 @@ require (
 	sourcegraph.com/sourcegraph/appdash-data v0.0.0-20151005221446-73f23eafcf67 // indirect
 )
 
-require (
-	github.com/360EntSecGroup-Skylar/excelize/v2 v2.4.0 // indirect
-	github.com/ClickHouse/clickhouse-go v1.4.5 // indirect
-	github.com/andrewarchi/gocipher v0.0.0-20201117064119-d399f25a1970 // indirect
-	github.com/brianvoe/gofakeit/v6 v6.5.0 // indirect
-	github.com/bykof/gostradamus v1.0.4 // indirect
-	github.com/capitalone/fpe v1.2.1 // indirect
-	github.com/cloudflare/golz4 v0.0.0-20150217214814-ef862a3cdc58 // indirect
-	github.com/denisenkom/go-mssqldb v0.10.0 // indirect
-	github.com/dnnrly/abbreviate v1.5.2 // indirect
-	github.com/golang-sql/civil v0.0.0-20190719163853-cb61b32ac6fe // indirect
-	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
-	github.com/google/differential-privacy/go v0.0.0-20210713105217-8da48001ccbd // indirect
-	github.com/hashicorp/go-uuid v1.0.2 // indirect
-	github.com/howeyc/gopass v0.0.0-20190910152052-7cb4b85ec19c // indirect
-	github.com/jcmturner/gofork v1.0.0 // indirect
-	github.com/jessevdk/go-flags v1.5.0 // indirect
-	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
-	github.com/lib/pq v1.10.2 // indirect
-	github.com/mitchellh/go-homedir v1.1.0 // indirect
-	github.com/mithrandie/csvq v1.15.2 // indirect
-	github.com/mithrandie/csvq-driver v1.4.3 // indirect
-	github.com/mithrandie/go-file/v2 v2.0.2 // indirect
-	github.com/mithrandie/go-text v1.4.1 // indirect
-	github.com/mithrandie/readline-csvq v1.1.1 // indirect
-	github.com/mithrandie/ternary v1.1.0 // indirect
-	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
-	github.com/prestodb/presto-go-client v0.0.0-20201204133205-8958eb37e584 // indirect
-	github.com/richardlehane/mscfb v1.0.3 // indirect
-	github.com/richardlehane/msoleps v1.0.1 // indirect
-	github.com/sijms/go-ora/v2 v2.1.21 // indirect
-	github.com/tjfoc/gmsm v1.3.2 // indirect
-	github.com/wumansgy/goEncrypt v0.0.0-20201114063050-efa0a0601707 // indirect
-	github.com/xuri/efp v0.0.0-20210322160811-ab561f5b45e3 // indirect
-	github.com/zach-klippenstein/goregen v0.0.0-20160303162051-795b5e3961ea // indirect
-	golang.org/x/crypto v0.0.0-20210503195802-e9a32991a82e // indirect
-	golang.org/x/exp v0.0.0-20210220032938-85be41e4509f // indirect
-	golang.org/x/mod v0.4.2 // indirect
-	golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1 // indirect
-	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
-	gonum.org/v1/gonum v0.8.2 // indirect
-	gopkg.in/ini.v1 v1.62.0 // indirect
-	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
-	gopkg.in/jcmturner/dnsutils.v1 v1.0.1 // indirect
-	gopkg.in/jcmturner/gokrb5.v6 v6.1.1 // indirect
-	gopkg.in/jcmturner/rpc.v1 v1.1.0 // indirect
-	lukechampine.com/uint128 v1.1.1 // indirect
-	modernc.org/cc/v3 v3.33.6 // indirect
-	modernc.org/ccgo/v3 v3.9.5 // indirect
-	modernc.org/libc v1.9.11 // indirect
-	modernc.org/memory v1.0.4 // indirect
-	modernc.org/opt v0.1.1 // indirect
-	modernc.org/sqlite v1.11.2 // indirect
-	modernc.org/strutil v1.1.1 // indirect
-	modernc.org/token v1.0.0 // indirect
-)
+require golang.org/x/crypto v0.0.0-20210503195802-e9a32991a82e // indirect
 
 replace google.golang.org/grpc => google.golang.org/grpc v1.29.1
