@@ -59,6 +59,7 @@ func newWorker(db *tidb.Context, maskFunc MaskFunc, ignoreIntPK bool, globalName
 	}
 }
 
+// Replace with `Value` mode
 func (w *worker) replaceValue(node ast.StmtNode) (ast.StmtNode, ExprMap, error) {
 	v := NewReplaceVisitor(ReplaceModeValue)
 	newNode, _ := node.Accept(v)
@@ -66,6 +67,7 @@ func (w *worker) replaceValue(node ast.StmtNode) (ast.StmtNode, ExprMap, error) 
 	return newNode.(ast.StmtNode), v.OriginExprs, nil
 }
 
+// Replace with `ParamMarker` mode, for `PREPARE` statements
 func (w *worker) replaceParamMarker(sql string) (ast.StmtNode, []ReplaceMarker, error) {
 	node, err := w.db.ParseOne(sql)
 	if err != nil {
@@ -83,6 +85,7 @@ func (w *worker) replaceParamMarker(sql string) (ast.StmtNode, []ReplaceMarker, 
 	return newNode.(ast.StmtNode), markers, nil
 }
 
+// Restore markers in replaced AST, then restore into SQL
 func (w *worker) restore(stmtNode ast.StmtNode, originExprs ExprMap, inferredTypes TypeMap, nameMap *NameMap) (string, error) {
 	v := NewRestoreVisitor(originExprs, inferredTypes, w.maskFunc, nameMap, w.ignoreIntPK)
 	newNode, ok := stmtNode.Accept(v)
@@ -98,6 +101,7 @@ func (w *worker) restore(stmtNode ast.StmtNode, originExprs ExprMap, inferredTyp
 	return newSQL, v.err
 }
 
+// Infer types of all constants in a REPLACED AST, returns several maps
 func (w *worker) infer(stmtNode ast.StmtNode) (TypeMap, *NameMap, error) {
 	execStmt, err := w.db.CompileStmtNode(stmtNode)
 	if err != nil {
@@ -134,7 +138,7 @@ func (w *worker) infer(stmtNode ast.StmtNode) (TypeMap, *NameMap, error) {
 		case kv.IntHandle:
 			inferredTypes[ReplaceMarker(h.IntValue())] = NewIntHandleInferredType()
 		default:
-			// ignore common handle for clustered index
+			// ignore common handle for clustered index, since we disabled this feature
 		}
 	}
 

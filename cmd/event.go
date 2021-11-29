@@ -25,6 +25,7 @@ func (opt *EventOption) outPath(from string) string {
 	return filepath.Join(opt.OutputDir, filepath.Base(from))
 }
 
+// Run event masking for the single file at `path`, returns `Stats`
 func (opt *EventOption) RunFile(path string) (*mask.Stats, error) {
 	maskFunc := globalOption.ResolveMaskFunc()
 
@@ -87,6 +88,7 @@ func (opt *EventOption) RunFile(path string) (*mask.Stats, error) {
 	return &masker.Stats, nil
 }
 
+// Entry for `event` subcommand.
 func (opt *EventOption) Run() error {
 	if opt.OutputDir == "" {
 		return fmt.Errorf("output dir not given")

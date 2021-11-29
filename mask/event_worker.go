@@ -22,6 +22,7 @@ type EventWorker struct {
 	preparedStmts PreparedMap
 }
 
+// Create a mask worker for MySQL Events
 func NewEventWorker(db *tidb.Context, maskFunc MaskFunc, ignoreIntPK bool, nameMap *NameMap) *EventWorker {
 	return &EventWorker{
 		worker:        *newWorker(db, maskFunc, ignoreIntPK, nameMap),
@@ -29,6 +30,7 @@ func NewEventWorker(db *tidb.Context, maskFunc MaskFunc, ignoreIntPK bool, nameM
 	}
 }
 
+// For type `StmtPrepare`, do not evaluate but only analyze it and store into `w.preparedStmts`
 func (w *EventWorker) PrepareOne(stmtID uint64, sql string) (string, error) {
 	replacedStmtNode, sortedMarkers, err := w.replaceParamMarker(sql)
 	if err != nil {
@@ -63,6 +65,7 @@ func (w *EventWorker) PrepareOne(stmtID uint64, sql string) (string, error) {
 	return newSQL, nil
 }
 
+// For type `StmtExecute`, lookup prepared analysis from `w.preparedStmts` and mask parameters
 func (w *EventWorker) MaskOneExecute(stmtID uint64, params []interface{}) ([]interface{}, error) {
 	p, ok := w.preparedStmts[stmtID]
 	if !ok {
@@ -81,7 +84,9 @@ func (w *EventWorker) MaskOneExecute(stmtID uint64, params []interface{}) ([]int
 		originDatum := types.NewDatum(param)
 
 		marker := p.sortedMarkers[i]
-		// HACK: handle `? +/-/*/div {constant}`
+		// HACK: Most of constants in `PREPARE` statements are not considered to be masked.
+		//       In replace phase, we have replaced all constants with `1`, so this may help
+		//       to handle expressions like `? +/-/*/div {constant}`
 		possibleMarkers := []ReplaceMarker{
 			marker,
 			marker + 1,

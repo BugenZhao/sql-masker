@@ -48,6 +48,7 @@ func (db *Context) ExecuteOne(sql string) (server.ResultSet, error) {
 
 type StmtTransform = func(ast.StmtNode) ast.StmtNode
 
+// Parse all statements in `sql`, `transform` them, then execute them
 func (db *Context) ExecuteWithTransform(sql string, transform StmtTransform) error {
 	stmts, err := db.Parse(sql)
 	if err != nil {
@@ -65,10 +66,12 @@ func (db *Context) ExecuteWithTransform(sql string, transform StmtTransform) err
 	return nil
 }
 
+// Execute `sql` as statements, allows multiple
 func (db *Context) Execute(sql string) error {
 	return db.ExecuteWithTransform(sql, nil)
 }
 
+// Compile `stmt` AST into physical plan
 func (db *Context) CompileStmtNode(stmt ast.StmtNode) (*executor.ExecStmt, error) {
 	compiler := executor.Compiler{Ctx: db.qctx.Session}
 	execStmt, err := compiler.Compile(db.ctx, stmt)
@@ -78,6 +81,7 @@ func (db *Context) CompileStmtNode(stmt ast.StmtNode) (*executor.ExecStmt, error
 	return execStmt, nil
 }
 
+// Parse and compile `stmt` sql string into physical plan
 func (db *Context) Compile(sql string) (*executor.ExecStmt, error) {
 	stmt, err := db.ParseOne(sql)
 	if err != nil {
@@ -86,6 +90,7 @@ func (db *Context) Compile(sql string) (*executor.ExecStmt, error) {
 	return db.CompileStmtNode(stmt)
 }
 
+// Restore AST to sql string, with some customizations
 func (db *Context) RestoreSQL(node ast.Node) (string, error) {
 	buf := &strings.Builder{}
 	restoreFlags := format.DefaultRestoreFlags | format.RestoreStringWithoutDefaultCharset
@@ -101,6 +106,10 @@ func (db *Context) RestoreSQL(node ast.Node) (string, error) {
 
 func (db *Context) CurrentDB() string {
 	return db.qctx.GetSessionVars().CurrentDB
+}
+
+func (db *Context) MayCreateDB(dbName string) error {
+	return db.Execute(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s`", dbName))
 }
 
 func (db *Context) UseDB(dbName string) error {

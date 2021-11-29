@@ -39,6 +39,7 @@ func NewGraph() *CastGraph {
 	}
 }
 
+// Add a relationship to this graph
 func (g *CastGraph) Add(a Expr, b Expr) bool {
 	asNode := func(e Expr) Node {
 		switch e := e.(type) {
@@ -63,6 +64,7 @@ func (g *CastGraph) add(a Node, b Node) {
 	g.Adj[b] = append(g.Adj[b], a)
 }
 
+// Search the graph in a depth-first manner, to find out which type the node might be casted into
 func (g *CastGraph) doInfer(u Node, currType *InferredType, visited map[Node]bool) []*InferredType {
 	visited[u] = true
 	defer func() { visited[u] = false }()
@@ -104,6 +106,8 @@ func (g *CastGraph) InferType(c *expression.Constant) *InferredType {
 	return possibleTypes[0]
 }
 
+// A visitor for physical plans, which extract sconstants for masking,
+// and builds a `CastGraph` for inferring types
 type CastGraphBuilder struct {
 	Constants []*expression.Constant
 	Columns   []*expression.Column

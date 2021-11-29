@@ -49,6 +49,7 @@ func (m ReplaceMarker) IntValue() int64 {
 	return int64(m)
 }
 
+// Check whether a node is `COUNT(1)`
 func isCountOne(in *ast.AggregateFuncExpr) bool {
 	if in.F == ast.AggFuncCount && len(in.Args) == 1 {
 		arg := in.Args[0]
@@ -59,6 +60,8 @@ func isCountOne(in *ast.AggregateFuncExpr) bool {
 	return false
 }
 
+// Constants in some clauses should not be considered to be masked, like `LIMIT 100`
+// or `SELECT COUNT(1)` (which is rewritten from `COUNT(*)`)
 func enterMayIgnoreSubtree(in ast.Node) (node ast.Node, skipChilren bool) {
 	switch in := in.(type) {
 	case *ast.Limit:
@@ -79,6 +82,10 @@ func NewReplaceVisitor(mode ReplaceMode) *ReplaceVisitor {
 	}
 }
 
+// Replace constants with disjoint numbers as `ReplaceMarker`s.
+//
+// For normal statements, replace values with `Value` mode.
+// For handling `PREPARE` statements internally, we may replace values with `ParamMarker` mode.
 type ReplaceVisitor struct {
 	mode        ReplaceMode
 	next        ReplaceMarker
@@ -130,6 +137,7 @@ const (
 	RestoreModeNameOnly
 )
 
+// Create a `RestoreVisitor` with mode `NameValue`
 func NewRestoreVisitor(originExprs ExprMap, inferredTypes TypeMap, maskFunc MaskFunc, nameMap *NameMap, ignoreIntPK bool) *RestoreVisitor {
 	sc := stmtctx.StatementContext{}
 	sc.IgnoreTruncate = true // todo: what's this ?
@@ -147,6 +155,7 @@ func NewRestoreVisitor(originExprs ExprMap, inferredTypes TypeMap, maskFunc Mask
 	}
 }
 
+// Create a `RestoreVisitor` with mode `NameOnly`, which ignores restoring of constant values
 func NewNameOnlyRestoreVisitor(nameMap *NameMap) *RestoreVisitor {
 	sc := stmtctx.StatementContext{}
 	sc.IgnoreTruncate = true // todo: what's this ?
@@ -160,6 +169,15 @@ func NewNameOnlyRestoreVisitor(nameMap *NameMap) *RestoreVisitor {
 	}
 }
 
+// In replace phase, we replace constants with disjoint numbers as `ReplaceMarker`s in order to
+// infer types of them and construct a `TypeMap`.
+//
+// `RestoreVisitor` will traverse the AST, restoring and masking constants based on information
+// from `ExprMap` and `TypeMap`. Also in restore phase, names may need to be masked if `nameMap`
+// is given.
+//
+// Note that for `?` in PREPARE statements, there's neither way nor need to restore them, so an
+// option of `RestoreMode` with two variants `NameValue` and `NameOnly` is provided.
 type RestoreVisitor struct {
 	mode          RestoreMode
 	originExprs   ExprMap
@@ -185,6 +203,7 @@ func (v *RestoreVisitor) Enter(in ast.Node) (_ ast.Node, skipChilren bool) {
 }
 
 func (v *RestoreVisitor) Leave(in ast.Node) (_ ast.Node, ok bool) {
+	// mask names
 	if v.nameMap != nil {
 		if col, ok := in.(*ast.ColumnName); ok {
 			col = v.nameMap.ColumnName(col)
@@ -225,6 +244,7 @@ func (v *RestoreVisitor) Leave(in ast.Node) (_ ast.Node, ok bool) {
 		return in, true
 	}
 
+	// mask values
 	if expr, ok := in.(*driver.ValueExpr); ok {
 		m := ReplaceMarker(expr.Datum.GetInt64())
 		originExpr, ok := v.originExprs[m]

@@ -38,6 +38,7 @@ var globalOption = &Option{
 	Mask:                 "debug",
 }
 
+// Lookup `MaskFunc` by name from given `Option`
 func (o *Option) ResolveMaskFunc() mask.MaskFunc {
 	fn, ok := mask.MaskFuncMap[strings.ToLower(o.Mask)]
 	if !ok {
@@ -55,6 +56,8 @@ var (
 	nameMapOnce sync.Once
 )
 
+// Read `NameMap` for db/table/col name masking,
+// returns nil is not provided
 func (o *Option) ReadNameMap() *mask.NameMap {
 	nameMapOnce.Do(func() {
 		if o.NameMapPath == "" {

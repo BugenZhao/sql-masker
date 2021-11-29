@@ -44,6 +44,8 @@ func NewLocalNameMap(global *NameMap, columnsSubSet []*expression.Column, curren
 
 	columns := make(map[string]string)
 
+	// preprocess to split mapping of `db.table.col` into pieces like `table.col` or `col`,
+	// based on provided `columnsSubSet`
 	for _, col := range columnsSubSet {
 		origName := col.OrigName
 		mappedName := global.column(origName)

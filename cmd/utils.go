@@ -11,7 +11,17 @@ import (
 	"github.com/pingcap/parser/ast"
 	"github.com/pingcap/parser/types"
 	"github.com/pingcap/tidb/util/set"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
+
+func initLogger() {
+	config := zap.NewProductionConfig()
+	config.Encoding = "console"
+	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+	logger, _ := config.Build()
+	zap.ReplaceGlobals(logger)
+}
 
 type TaskResult struct {
 	from  string
@@ -20,6 +30,7 @@ type TaskResult struct {
 	err   error
 }
 
+// Read SQL files into statements and output to `out` chan
 func ReadSQLs(out chan<- string, sqlPaths ...string) {
 	defer close(out)
 

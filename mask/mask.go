@@ -10,9 +10,11 @@ import (
 
 type MaskFunc struct {
 	Description string
-	fn          func(datum types.Datum, tp *types.FieldType) (types.Datum, *types.FieldType, error)
+	// Mask `datum` with type `tp` into new datum and type
+	fn func(datum types.Datum, tp *types.FieldType) (types.Datum, *types.FieldType, error)
 }
 
+// All mask functions
 var MaskFuncMap = map[string]MaskFunc{
 	"workload-sim": {"For workload simulation project", funcs.WorkloadSimMask},
 	"debug":        {"Replace every constant with its inferred type, for debug usage", funcs.DebugMask},
@@ -20,6 +22,8 @@ var MaskFuncMap = map[string]MaskFunc{
 	"identical":    {"Dry-run baseline", funcs.IdenticalMask},
 }
 
+// Convert `datum` to `toType` and then mask using `maskFunc`,
+// returns new datum and its coresponding type
 func ConvertAndMask(sc *stmtctx.StatementContext, datum types.Datum, toType *types.FieldType, maskFunc MaskFunc) (types.Datum, *types.FieldType, error) {
 	castedDatum, err := datum.ConvertTo(sc, toType)
 	if err != nil {

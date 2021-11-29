@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"path/filepath"
 	"sync"
 
@@ -13,7 +12,9 @@ var (
 	globalInstanceOnce sync.Once
 )
 
-func prepareDB() error {
+// Create a new `tidb.Instance`, then run all sqls under `DDLDir` to build schema,
+// should be run only once
+func initializeDB() error {
 	var err error
 	globalInstance, err = tidb.NewInstance()
 	if err != nil {
@@ -25,8 +26,14 @@ func prepareDB() error {
 		return err
 	}
 
-	_ = db.Execute(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s`", globalOption.DB))
-	_ = db.UseDB(globalOption.DB)
+	err = db.MayCreateDB(globalOption.DB)
+	if err != nil {
+		return err
+	}
+	err = db.UseDB(globalOption.DB)
+	if err != nil {
+		return err
+	}
 
 	for _, dir := range globalOption.DDLDir {
 		ddls := make(chan string)
@@ -52,9 +59,11 @@ func prepareDB() error {
 	return nil
 }
 
+// Create a new `tidb.Context` (may initialize a `tidb.Instance` first),
+// then run all sqls under `PrepareDir` for this session
 func NewPreparedTiDBContext() (*tidb.Context, error) {
 	globalInstanceOnce.Do(func() {
-		err := prepareDB()
+		err := initializeDB()
 		if err != nil {
 			panic(err)
 		}

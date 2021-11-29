@@ -17,6 +17,7 @@ type Instance struct {
 	driver *server.TiDBDriver
 }
 
+// Create a new `TiDBDriver` as `Instance` with mock store
 func NewInstance() (*Instance, error) {
 	log.SetLevel(zapcore.ErrorLevel)
 
@@ -39,6 +40,7 @@ func NewInstance() (*Instance, error) {
 	return db, nil
 }
 
+// Open a new `Context` for executing or compiling statements
 func (i *Instance) OpenContext() (*Context, error) {
 	qctx, err := i.driver.OpenCtx(uint64(0), 0, uint8(mysql.DefaultCollationID), "", nil)
 	if err != nil {
